@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "employeeId": "user123",
+      "password": "password123",
+      "designation": "Developer",
+      "location": "New York"
+    },
+    {
+      "id": 2,
+      "employeeId": "admin456",
+      "password": "password456",
+      "designation": "Manager",
+      "location": "London"
+    }
+  ]
+}
