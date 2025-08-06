@@ -7,6 +7,30 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.sidebar-toggle-btn i {
+  color: #333;
+}
+
 .logo {
   font-size: 1.5rem;
   font-weight: 600;

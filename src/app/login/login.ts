@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -12,6 +13,8 @@ export class LoginComponent {
   showUserLogin = false;
   showAdminLogin = false;
   designations = ['Manager', 'Senior Manager', 'Technical Lead'];
+
+  constructor(private router: Router) {}
 
   displayUserLogin() {
     this.showUserLogin = true;
@@ -26,5 +29,9 @@ export class LoginComponent {
   goBack() {
     this.showUserLogin = false;
     this.showAdminLogin = false;
+  }
+
+  HomePage() {
+    this.router.navigate(['/home']);
   }
 }

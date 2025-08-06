@@ -2,7 +2,19 @@
   <div class="logo">
     Workday Wizard
   </div>
-  <blockquote class="header-quote">
-    "The best way to predict the future is to create it."
-  </blockquote>
+  <div class="header-right">
+    <blockquote class="header-quote">
+      "The best way to predict the future is to create it."
+    </blockquote>
+    <button 
+      *ngIf="isHomePage" 
+      class="sidebar-toggle-btn" 
+      (click)="toggleSidebar()"
+      title="Toggle Sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
 </header>
+
+<!-- Include the sidebar component -->
+<app-sidebar [isOpen]="sidebarOpen" (closeSidebar)="closeSidebar()"></app-sidebar>
