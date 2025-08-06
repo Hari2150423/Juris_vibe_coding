@@ -21,8 +21,9 @@
             <div class="form-group mb-3">
               <input type="text" class="form-control form-control-sm" placeholder="User ID" [(ngModel)]="user.employeeId" name="employeeId">
             </div>
-            <div class="form-group mb-3">
-              <input type="password" class="form-control form-control-sm" placeholder="Password" [(ngModel)]="user.password" name="password">
+            <div class="form-group mb-3 position-relative">
+              <input [type]="passwordFieldType" class="form-control form-control-sm" placeholder="Password" [(ngModel)]="user.password" name="password">
+              <i class="fas" [ngClass]="passwordFieldType === 'password' ? 'fa-eye' : 'fa-eye-slash'" (click)="togglePasswordVisibility()"></i>
             </div>
             <div class="d-flex justify-content-center">
               <button type="submit" class="btn btn-primary mx-2">Login</button>
@@ -40,8 +41,9 @@
             <div class="form-group mb-3">
               <input type="text" class="form-control form-control-sm" placeholder="User ID" [(ngModel)]="admin.employeeId" name="adminEmployeeId">
             </div>
-            <div class="form-group mb-3">
-              <input type="password" class="form-control form-control-sm" placeholder="Password" [(ngModel)]="admin.password" name="adminPassword">
+            <div class="form-group mb-3 position-relative">
+              <input [type]="passwordFieldType" class="form-control form-control-sm" placeholder="Password" [(ngModel)]="admin.password" name="adminPassword">
+              <i class="fas" [ngClass]="passwordFieldType === 'password' ? 'fa-eye' : 'fa-eye-slash'" (click)="togglePasswordVisibility()"></i>
             </div>
             <div class="form-group mb-3">
               <select class="form-control form-control-sm" [(ngModel)]="admin.designation" name="designation">

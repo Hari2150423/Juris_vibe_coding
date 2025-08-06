@@ -2,6 +2,7 @@
   "users": [
     {
       "id": 1,
+      "name": "John Doe",
       "employeeId": "user123",
       "password": "password123",
       "designation": "Developer",
@@ -9,6 +10,7 @@
     },
     {
       "id": 2,
+      "name": "Jane Smith",
       "employeeId": "admin456",
       "password": "password456",
       "designation": "Manager",

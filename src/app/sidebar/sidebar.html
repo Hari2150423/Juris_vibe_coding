@@ -1,0 +1,27 @@
+<div class="sidebar-overlay" *ngIf="isOpen" (click)="onCloseSidebar()"></div>
+<div class="sidebar" [class.sidebar-open]="isOpen">
+  <div class="sidebar-header">
+    <h3>Workday Wizard</h3>
+    <button class="close-btn" (click)="onCloseSidebar()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="sidebar-content">
+    <ul class="sidebar-menu">
+        <li class="sidebar-item">
+        <a href="#" class="sidebar-link" (click)="navigateTo('/profile')">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+  <div class="sidebar-footer">
+    <a href="#" class="sidebar-link" (click)="navigateTo('/login')">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </a>
+  </div>
+</div>

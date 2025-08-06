@@ -5,6 +5,7 @@ import { DataService } from '../data.service';
 import { ToastrService } from 'ngx-toastr';
 import { FormsModule } from '@angular/forms';
 import { User } from '../user.model';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
@@ -17,6 +18,7 @@ export class LoginComponent {
   showUserLogin = false;
   showAdminLogin = false;
   designations = ['Manager', 'Senior Manager', 'Technical Lead'];
+  passwordFieldType = 'password';
 
   user = {
     employeeId: '',
@@ -32,7 +34,8 @@ export class LoginComponent {
   constructor(
     private router: Router,
     private dataService: DataService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private authService: AuthService
   ) {}
 
   displayUserLogin() {
@@ -50,12 +53,17 @@ export class LoginComponent {
     this.showAdminLogin = false;
   }
 
+  togglePasswordVisibility() {
+    this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
+  }
+
   loginUser() {
     this.dataService.getUsers().subscribe(data => {
       const foundUser = data.users.find((u: User) => u.employeeId === this.user.employeeId);
       if (foundUser) {
         if (foundUser.password === this.user.password) {
           this.toastr.success('Login successful!');
+          this.authService.login(foundUser);
           this.router.navigate(['/user-dashboard']);
         } else {
           this.toastr.error('Invalid password');
@@ -75,6 +83,7 @@ export class LoginComponent {
       if (foundUser) {
         if (foundUser.password === this.admin.password) {
           this.toastr.success('Login successful!');
+          this.authService.login(foundUser);
           this.router.navigate(['/admin-dashboard']);
         } else {
           this.toastr.error('Invalid password');

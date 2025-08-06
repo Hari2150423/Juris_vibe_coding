@@ -55,3 +55,15 @@
 .user-login-form .btn {
   min-width: 120px;
 }
+
+.position-relative {
+  position: relative;
+}
+
+.position-relative .fas {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
