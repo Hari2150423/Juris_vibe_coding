@@ -27,7 +27,16 @@
   font-size: 1rem;
 }
 
-.selected-count {
+.info-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.selected-count,
+.location-display {
   display: inline-flex;
   align-items: center;
   background: #e3f2fd;

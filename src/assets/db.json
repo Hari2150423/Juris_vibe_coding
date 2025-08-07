@@ -5,7 +5,7 @@
       "name": "John Doe",
       "employeeId": "user123",
       "password": "password123",
-      "designation": "Developer",
+      "designation": "Programmer Analyst",
       "location": "New York"
     },
     {
@@ -15,6 +15,14 @@
       "password": "password456",
       "designation": "Manager",
       "location": "London"
+    },
+    {
+      "id": 3,
+      "name": "Peter Jones",
+      "employeeId": "user789",
+      "password": "password789",
+      "designation": "Programmer Analyst Trainee",
+      "location": "San Francisco"
     }
   ]
 }

@@ -2,9 +2,14 @@
   <div class="calendar-header">
     <h2>Select Your Working Days</h2>
     <p>Select 3-5 days per week (Weekends are blocked)</p>
+  <div class="info-bar">
     <div class="selected-count">
-      Selected: <span class="count">{{selectedDates.length}}</span>/5 days this week
+      Selected Days: {{ selectedDates.length }} / {{ userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? (workingDaysInMonth - elapsedWorkingDays) : 12 }}
     </div>
+    <div class="location-display">
+      Location: {{ userLocation }}
+    </div>
+  </div>
   </div>
 
   <div class="calendar-navigation">
@@ -54,11 +59,12 @@
         <i class="fas fa-times"></i>
       </span>
     </div>
-    <div class="validation-message" [class.error]="selectedDates.length < 3" [class.warning]="selectedDates.length > 5">
-      <span *ngIf="selectedDates.length < 3">Please select at least 3 days</span>
-      <span *ngIf="selectedDates.length > 5">Maximum 5 days allowed per week</span>
-      <span *ngIf="selectedDates.length >= 3 && selectedDates.length <= 5" class="success">
-        <i class="fas fa-check-circle"></i> Selection is valid
+    <div class="validation-message" [class.error]="(userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length !== (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length < 12 || selectedDates.length > (workingDaysInMonth - elapsedWorkingDays))" [class.success]="(userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length === (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length >= 12 && selectedDates.length <= (workingDaysInMonth - elapsedWorkingDays))">
+      <span *ngIf="userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee'">
+        Please select exactly {{ workingDaysInMonth - elapsedWorkingDays }} working days for the month.
+      </span>
+      <span *ngIf="userDesignation !== 'Programmer Analyst' && userDesignation !== 'Programmer Analyst Trainee'">
+        Please select at least 12 working days, up to {{ workingDaysInMonth - elapsedWorkingDays }} days.
       </span>
     </div>
   </div>
@@ -67,7 +73,7 @@
     <button 
       class="action-btn save-btn" 
       (click)="saveSelection()"
-      [disabled]="selectedDates.length < 3 || selectedDates.length > 5">
+      [disabled]="(userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length !== (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length < 12 || selectedDates.length > (workingDaysInMonth - elapsedWorkingDays))">
       Save Selection
     </button>
     <button class="action-btn clear-btn" (click)="clearSelection()">

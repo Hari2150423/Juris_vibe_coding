@@ -1,11 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../auth.service';
+import { DataService } from '../data.service';
+import { User } from '../user.model';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-calender-ui',
+  standalone: true,
   imports: [CommonModule],
   templateUrl: './calender-ui.html',
-  styleUrl: './calender-ui.css'
+  styleUrls: ['./calender-ui.css']
 })
 export class CalenderUI implements OnInit {
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -16,9 +21,30 @@ export class CalenderUI implements OnInit {
   currentWeekDates: Date[] = [];
   selectedDates: Date[] = [];
   today = new Date();
+  currentUser: Observable<User | null>;
+  userLocation: string = '';
+  userDesignation: string = '';
+  workingDaysInMonth: number = 0;
+  elapsedWorkingDays: number = 0;
+
+  constructor(private authService: AuthService, private dataService: DataService) {
+    this.currentUser = this.authService.currentUser;
+  }
 
   ngOnInit() {
     this.initializeCalendar();
+    this.currentUser.subscribe(user => {
+      if (user) {
+        this.dataService.getUsers().subscribe(data => {
+          const foundUser = data.users.find(u => u.employeeId === user.employeeId);
+          if (foundUser) {
+            this.userLocation = foundUser.location;
+            this.userDesignation = foundUser.designation;
+            this.calculateWorkingDaysInMonth();
+          }
+        });
+      }
+    });
   }
 
   initializeCalendar() {
@@ -41,11 +67,30 @@ export class CalenderUI implements OnInit {
       date.setDate(this.currentWeekStart.getDate() + i);
       this.currentWeekDates.push(date);
     }
-    
-    // Filter selected dates to only include current week
-    this.selectedDates = this.selectedDates.filter(date => 
-      this.isDateInCurrentWeek(date)
-    );
+  }
+
+  calculateWorkingDaysInMonth() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let workingDays = 0;
+    let elapsedDays = 0;
+    for (let i = 1; i <= daysInMonth; i++) {
+      const day = new Date(year, month, i).getDay();
+      const currentDate = new Date(year, month, i);
+      currentDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      if (day !== 0 && day !== 6) { // Not a weekend
+        workingDays++;
+        if (currentDate < today) {
+          elapsedDays++;
+        }
+      }
+    }
+    this.workingDaysInMonth = workingDays;
+    this.elapsedWorkingDays = elapsedDays;
   }
 
   isDateInCurrentWeek(date: Date): boolean {
@@ -56,20 +101,30 @@ export class CalenderUI implements OnInit {
     return date >= weekStart && date <= weekEnd;
   }
 
+  isDateInCurrentMonthStrict(date: Date): boolean {
+    return date.getMonth() === this.today.getMonth() && date.getFullYear() === this.today.getFullYear();
+  }
+
   previousWeek() {
-    this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
+    const newWeekStart = new Date(this.currentWeekStart);
+    newWeekStart.setDate(newWeekStart.getDate() - 7);
+    this.currentWeekStart = newWeekStart;
     this.generateCurrentWeek();
+    this.calculateWorkingDaysInMonth(); // Recalculate for new month
   }
 
   nextWeek() {
-    this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
+    const newWeekStart = new Date(this.currentWeekStart);
+    newWeekStart.setDate(newWeekStart.getDate() + 7);
+    this.currentWeekStart = newWeekStart;
     this.generateCurrentWeek();
+    this.calculateWorkingDaysInMonth(); // Recalculate for new month
   }
 
   canGoPrevious(): boolean {
     const previousWeek = new Date(this.currentWeekStart);
     previousWeek.setDate(previousWeek.getDate() - 7);
-    return previousWeek >= this.getStartOfWeek(this.today);
+    return previousWeek.getMonth() === this.today.getMonth() || previousWeek.getFullYear() === this.today.getFullYear();
   }
 
   getCurrentWeekString(): string {
@@ -86,11 +141,11 @@ export class CalenderUI implements OnInit {
 
   selectDate(date: Date, dayIndex: number) {
     // Block weekends (Sunday = 0, Saturday = 6)
-    if (this.isWeekend(dayIndex)) {
+    if (this.isWeekend(dayIndex) || this.isPastDate(date) || !this.isDateInCurrentMonthStrict(date)) {
       return;
     }
 
-    // Check if date is already selected
+    const isProgrammer = this.userDesignation === 'Programmer Analyst' || this.userDesignation === 'Programmer Analyst Trainee';
     const existingIndex = this.selectedDates.findIndex(selected => 
       this.isSameDate(selected, date)
     );
@@ -99,10 +154,23 @@ export class CalenderUI implements OnInit {
       // Remove if already selected
       this.selectedDates.splice(existingIndex, 1);
     } else {
-      // Add if not selected and under limit
-      if (this.selectedDates.length < 5) {
-        this.selectedDates.push(new Date(date));
-        this.selectedDates.sort((a, b) => a.getTime() - b.getTime());
+      const maxDays = this.workingDaysInMonth - this.elapsedWorkingDays;
+      if (isProgrammer) {
+        // Programmers select at least 12 days, up to total working days in month
+        if (this.selectedDates.length < maxDays) {
+          this.selectedDates.push(new Date(date));
+          this.selectedDates.sort((a, b) => a.getTime() - b.getTime());
+        } else if (this.selectedDates.length === maxDays && existingIndex === -1) {
+          return;
+        }
+      } else {
+        // Other designations: minimum 12 days, up to total working days in month
+        if (this.selectedDates.length < maxDays) {
+          this.selectedDates.push(new Date(date));
+          this.selectedDates.sort((a, b) => a.getTime() - b.getTime());
+        } else if (this.selectedDates.length === maxDays && existingIndex === -1) {
+          return;
+        }
       }
     }
   }
@@ -164,11 +232,23 @@ export class CalenderUI implements OnInit {
   }
 
   saveSelection() {
-    if (this.selectedDates.length >= 3 && this.selectedDates.length <= 5) {
-      console.log('Saved working days:', this.selectedDates);
-      // Here you can implement the logic to save the selection
-      // For example, send to a service or emit an event
-      alert(`Successfully saved ${this.selectedDates.length} working days!`);
+    const isProgrammer = this.userDesignation === 'Programmer Analyst' || this.userDesignation === 'Programmer Analyst Trainee';
+    const remainingWorkingDays = this.workingDaysInMonth - this.elapsedWorkingDays;
+    
+    if (isProgrammer) {
+      if (this.selectedDates.length === remainingWorkingDays) {
+        console.log('Saved working days:', this.selectedDates);
+        alert(`Successfully saved ${this.selectedDates.length} working days!`);
+      } else {
+        alert(`Please select exactly ${remainingWorkingDays} working days.`);
+      }
+    } else {
+      if (this.selectedDates.length >= 12 && this.selectedDates.length <= remainingWorkingDays) {
+        console.log('Saved working days:', this.selectedDates);
+        alert(`Successfully saved ${this.selectedDates.length} working days!`);
+      } else {
+        alert(`Please select at least 12 working days, up to ${remainingWorkingDays} days.`);
+      }
     }
   }
 
