@@ -8,6 +8,28 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.calendar-note {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--calendar-note-bg, #f0f4ff);
+    border: 1px solid var(--calendar-note-border, #b3c6ff);
+    color: var(--calendar-note-color, #23408e);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(35, 64, 142, 0.05);
+}
+
+.calendar-note__icon {
+    font-size: 1.5rem;
+}
+
+.calendar-note__text {
+    flex: 1;
+}
+
 /* Header Section */
 .calendar-header {
   text-align: center;
