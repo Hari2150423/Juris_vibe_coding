@@ -26,6 +26,7 @@ export class CalenderUI implements OnInit {
   userDesignation: string = '';
   workingDaysInMonth: number = 0;
   elapsedWorkingDays: number = 0;
+  selectedFile: File | null = null;
 
   constructor(private authService: AuthService, private dataService: DataService) {
     this.currentUser = this.authService.currentUser;
@@ -235,24 +236,45 @@ export class CalenderUI implements OnInit {
     const isProgrammer = this.userDesignation === 'Programmer Analyst' || this.userDesignation === 'Programmer Analyst Trainee';
     const remainingWorkingDays = this.workingDaysInMonth - this.elapsedWorkingDays;
     
-    if (isProgrammer) {
-      if (this.selectedDates.length === remainingWorkingDays) {
-        console.log('Saved working days:', this.selectedDates);
-        alert(`Successfully saved ${this.selectedDates.length} working days!`);
-      } else {
-        alert(`Please select exactly ${remainingWorkingDays} working days.`);
+    const isDateCriteriaMet = isProgrammer 
+      ? this.selectedDates.length === remainingWorkingDays 
+      : (this.selectedDates.length >= 12 && this.selectedDates.length <= remainingWorkingDays);
+
+    if (isDateCriteriaMet || this.selectedFile) {
+      console.log('Saved working days:', this.selectedDates);
+      if (this.selectedFile) {
+        console.log('Attached file:', this.selectedFile.name);
       }
+      alert(`Successfully saved ${this.selectedDates.length} working days!`);
     } else {
-      if (this.selectedDates.length >= 12 && this.selectedDates.length <= remainingWorkingDays) {
-        console.log('Saved working days:', this.selectedDates);
-        alert(`Successfully saved ${this.selectedDates.length} working days!`);
+      if (isProgrammer) {
+        alert(`Please select exactly ${remainingWorkingDays} working days.`);
       } else {
         alert(`Please select at least 12 working days, up to ${remainingWorkingDays} days.`);
       }
     }
   }
 
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.type === 'image/png' || file.type === 'image/jpeg') {
+        this.selectedFile = file;
+        alert(`File selected: ${file.name}`);
+      } else {
+        this.selectedFile = null;
+        alert('Please select a PNG or JPEG image.');
+      }
+    }
+  }
+
   clearSelection() {
     this.selectedDates = [];
+    this.selectedFile = null;
+  }
+
+  removeSelectedFile() {
+    this.selectedFile = null;
   }
 }

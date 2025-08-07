@@ -9,6 +9,9 @@
     <div class="location-display">
       Location: {{ userLocation }}
     </div>
+    <div class="designation-display">
+      Designation: {{ userDesignation }}
+    </div>
   </div>
   </div>
 
@@ -69,15 +72,29 @@
     </div>
   </div>
 
-  <div class="calendar-actions">
-    <button 
-      class="action-btn save-btn" 
-      (click)="saveSelection()"
-      [disabled]="(userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length !== (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length < 12 || selectedDates.length > (workingDaysInMonth - elapsedWorkingDays))">
-      Save Selection
-    </button>
-    <button class="action-btn clear-btn" (click)="clearSelection()">
-      Clear All
-    </button>
+  <div class="calendar-footer-wrapper">
+    <div class="attachment-section">
+      <label for="attachment" class="action-btn attach-btn">
+        <i class="fas fa-paperclip"></i> Attach Image
+        <p class="attachment-note" *ngIf="!selectedFile">For work from home, attach the approval image.</p>
+      </label>
+      <input type="file" id="attachment" accept="image/png, image/jpeg" (change)="onFileSelected($event)" style="display: none;">
+      <div class="selected-file-display" *ngIf="selectedFile">
+        <span>{{ selectedFile.name }}</span>
+        <i class="fas fa-times-circle remove-file-icon" (click)="removeSelectedFile()"></i>
+      </div>
+    </div>
+
+    <div class="calendar-actions">
+      <button 
+        class="action-btn save-btn" 
+        (click)="saveSelection()"
+        [disabled]="!((userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length === (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length >= 12 && selectedDates.length <= (workingDaysInMonth - elapsedWorkingDays)) || selectedFile)">
+        Save Selection
+      </button>
+      <button class="action-btn clear-btn" (click)="clearSelection()">
+        Clear All
+      </button>
+    </div>
   </div>
 </div>

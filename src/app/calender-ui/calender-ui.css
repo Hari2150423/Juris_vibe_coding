@@ -36,7 +36,8 @@
 }
 
 .selected-count,
-.location-display {
+.location-display,
+.designation-display {
   display: inline-flex;
   align-items: center;
   background: #e3f2fd;
@@ -263,6 +264,82 @@
   opacity: 0.8;
 }
 
+.remove-file-icon {
+  margin-left: 0.5rem;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* New Footer Wrapper for Alignment */
+.calendar-footer-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem; /* Match calendar navigation padding */
+  margin-top: 1rem; /* Space from selection summary */
+}
+
+.attachment-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align to left */
+  gap: 0.5rem;
+  position: relative; /* For tooltip */
+}
+
+.attach-btn {
+  background-color: #17a2b8;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+  min-width: 120px; /* Ensure it has a minimum width */
+}
+
+.attach-btn:hover {
+  background-color: #138496;
+}
+
+.selected-file-display {
+  display: flex;
+  align-items: center;
+  background-color: #e9ecef;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.attachment-note {
+  font-size: 0.85rem;
+  color: #333;
+  position: absolute;
+  top: calc(100% + 5px); /* Position below the button */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for centering */
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.attachment-section:hover .attachment-note {
+  display: block; /* Show on hover */
+}
+
 /* Validation Messages */
 .validation-message {
   padding: 0.75rem 1rem;
@@ -296,18 +373,18 @@
 .calendar-actions {
   display: flex;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-end; /* Align to right */
 }
 
 .action-btn {
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 1.5rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  min-width: 140px;
+  min-width: 120px;
 }
 
 .save-btn {
