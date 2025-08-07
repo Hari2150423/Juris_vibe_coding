@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../auth.service';
-import { DataService } from '../data.service';
-import { User } from '../user.model';
+import { AuthService } from '../../auth.service';
+import { DataService } from '../../data.service';
+import { User } from '../../user.model';
 import { Observable } from 'rxjs';
 
 @Component({
