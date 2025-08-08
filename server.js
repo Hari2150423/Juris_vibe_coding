@@ -431,6 +431,56 @@ app.get('/api/all-saved-dates', async (req, res) => {
   }
 });
 
+// Get users who haven't submitted roster dates (for admin)
+app.get('/api/users-not-submitted', async (req, res) => {
+  try {
+    const db = await readDatabase();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Failed to read database' });
+    }
+
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    // Get all users
+    const allUsers = db.users || [];
+    
+    // Get users who have submitted for current month/year
+    const submittedUsers = new Set();
+    
+    // Check submitted selections
+    if (db.submittedSelections) {
+      db.submittedSelections
+        .filter(submission => submission.month === currentMonth && submission.year === currentYear)
+        .forEach(submission => submittedUsers.add(submission.employeeId));
+    }
+    
+    // Check approved selections
+    if (db.approvedSelections) {
+      db.approvedSelections
+        .filter(selection => selection.month === currentMonth && selection.year === currentYear)
+        .forEach(selection => submittedUsers.add(selection.employeeId));
+    }
+    
+    // Filter users who haven't submitted
+    const usersNotSubmitted = allUsers.filter(user => !submittedUsers.has(user.employeeId));
+    
+    res.json({
+      month: currentMonth,
+      year: currentYear,
+      totalUsers: allUsers.length,
+      submittedCount: submittedUsers.size,
+      notSubmittedCount: usersNotSubmitted.length,
+      usersNotSubmitted: usersNotSubmitted
+    });
+
+  } catch (error) {
+    console.error('Error getting users who haven\'t submitted:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Database path: ${DB_PATH}`);

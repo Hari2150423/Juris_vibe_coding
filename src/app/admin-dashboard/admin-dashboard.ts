@@ -20,6 +20,7 @@ export class AdminDashboardComponent implements OnInit {
   admins: User[] = [];
   submittedSelections: UserDateRecord[] = [];
   selectedDatesData: any[] = [];
+  usersNotSubmitted: any = null;
   totalUsers = 0;
   totalAdmins = 0;
   totalBookings = 0;
@@ -76,6 +77,9 @@ export class AdminDashboardComponent implements OnInit {
         
         // Load submitted selections
         this.loadSubmittedSelections();
+        
+        // Load users who haven't submitted
+        this.loadUsersNotSubmitted();
       },
       error: (error) => {
         this.toastr.error('Failed to load dashboard data');
@@ -92,6 +96,18 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading submitted selections:', error);
+      }
+    });
+  }
+
+  loadUsersNotSubmitted() {
+    this.dateService.getUsersNotSubmitted().subscribe({
+      next: (data) => {
+        this.usersNotSubmitted = data;
+      },
+      error: (error) => {
+        console.error('Error loading users who haven\'t submitted:', error);
+        this.toastr.error('Failed to load pending submissions data');
       }
     });
   }
@@ -171,5 +187,24 @@ export class AdminDashboardComponent implements OnInit {
 
   formatDateTime(dateString: string): string {
     return new Date(dateString).toLocaleString();
+  }
+
+  // Remind user to submit roster dates
+  remindUser(user: any) {
+    // In a real application, this would send an email or notification
+    this.toastr.info(`Reminder sent to ${user.name} (${user.employeeId})`, 'Reminder Sent');
+    console.log('Reminder sent to user:', user);
+  }
+
+  // View user details
+  viewUserDetails(user: any) {
+    this.toastr.info(`Viewing details for ${user.name}`, 'User Details');
+    console.log('User details:', user);
+  }
+
+  // Refresh all dashboard data
+  refreshDashboardData() {
+    this.toastr.info('Refreshing dashboard data...', 'Refreshing');
+    this.loadDashboardData();
   }
 }

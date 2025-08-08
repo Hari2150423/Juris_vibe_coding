@@ -80,4 +80,8 @@ export class DateService {
   getAllSavedDates(): Observable<UserDateRecord[]> {
     return this.http.get<UserDateRecord[]>(`${this.apiUrl}/all-saved-dates`);
   }
+
+  getUsersNotSubmitted(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users-not-submitted`);
+  }
 }

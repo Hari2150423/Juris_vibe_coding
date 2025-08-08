@@ -59,11 +59,11 @@
       <div class="col-md-3">
         <div class="stats-card">
           <div class="stats-icon active">
-            <i class="fas fa-user-check"></i>
+            <i class="fas fa-clock"></i>
           </div>
           <div class="stats-content">
-            <h3>{{ users.length }}</h3>
-            <p>Active Users</p>
+            <h3>{{ usersNotSubmitted?.notSubmittedCount || 0 }}</h3>
+            <p>Pending Submissions</p>
           </div>
         </div>
       </div>
@@ -87,6 +87,11 @@
              [class.active]="activeTab === 'submissions'" 
              (click)="setActiveTab('submissions'); $event.preventDefault()">
             <i class="fas fa-paper-plane me-2"></i>Review Submissions
+          </a>
+          <a class="nav-link" 
+             [class.active]="activeTab === 'pending'" 
+             (click)="setActiveTab('pending'); $event.preventDefault()">
+            <i class="fas fa-clock me-2"></i>Pending Submissions
           </a>
           <a class="nav-link" 
              [class.active]="activeTab === 'bookings'" 
@@ -299,6 +304,81 @@
                 <div *ngIf="submittedSelections.length === 0" class="text-center text-muted py-4">
                   No submissions found
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Submissions Tab -->
+        <div *ngIf="activeTab === 'pending'" class="tab-content">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <h5><i class="fas fa-clock me-2"></i>Users Who Haven't Submitted Roster Dates</h5>
+                <div *ngIf="usersNotSubmitted" class="mt-2">
+                  <small class="text-muted">
+                    For {{ usersNotSubmitted.month }}/{{ usersNotSubmitted.year }} - 
+                    {{ usersNotSubmitted.notSubmittedCount }} of {{ usersNotSubmitted.totalUsers }} users pending
+                  </small>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" 
+                      (click)="refreshDashboardData()"
+                      title="Refresh Data">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+            <div class="card-body">
+              <div *ngIf="usersNotSubmitted && usersNotSubmitted.usersNotSubmitted.length > 0" class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Designation</th>
+                      <th>Location</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let user of usersNotSubmitted.usersNotSubmitted">
+                      <td>{{ user.employeeId }}</td>
+                      <td>{{ user.name }}</td>
+                      <td>{{ user.designation }}</td>
+                      <td>{{ user.location }}</td>
+                      <td>
+                        <span class="badge bg-warning text-dark">
+                          <i class="fas fa-clock me-1"></i>Not Submitted
+                        </span>
+                      </td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-sm btn-primary" 
+                                  (click)="remindUser(user)"
+                                  title="Send Reminder">
+                            <i class="fas fa-bell"></i> Remind
+                          </button>
+                          <button class="btn btn-sm btn-info" 
+                                  (click)="viewUserDetails(user)"
+                                  title="View User Details">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div *ngIf="usersNotSubmitted && usersNotSubmitted.usersNotSubmitted.length === 0" 
+                   class="text-center text-success py-4">
+                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                <h4>All Users Have Submitted!</h4>
+                <p class="text-muted">All users have submitted their roster dates for this month.</p>
+              </div>
+              <div *ngIf="!usersNotSubmitted" class="text-center py-4">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p class="mt-2">Loading pending submissions...</p>
               </div>
             </div>
           </div>
