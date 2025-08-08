@@ -49,4 +49,9 @@ export class DateService {
   getAllSavedDates(): Observable<UserDateRecord[]> {
     return this.http.get<UserDateRecord[]>(`${this.apiUrl}/all-saved-dates`);
   }
+
+  getApprovalStatus(employeeId: string): Observable<any> {
+    // Placeholder: implement actual backend call
+    return this.http.get<any>(`${this.apiUrl}/approval-status/${employeeId}`);
+  }
 }

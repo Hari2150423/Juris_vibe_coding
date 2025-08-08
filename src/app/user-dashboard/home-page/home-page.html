@@ -20,10 +20,16 @@
           </span>
         </div>
       </div>
-      <button class="edit-btn" (click)="enableEditMode()">
+      <div class="status-tag" *ngIf="status === 'pending'">
+        <span class="info-tag info-pending">&#9432; Approval Pending</span>
+      </div>
+      <div class="status-tag" *ngIf="status === 'approved'">
+        <span class="info-tag info-approved">&#10003; Approved</span>
+      </div>
+      <button class="edit-btn" (click)="enableEditMode()" *ngIf="!hideEditAndSubmit">
         Edit Selection
       </button>
-      <button class="submit-btn" (click)="openSubmitModal()">
+      <button class="submit-btn" (click)="openSubmitModal()" *ngIf="!hideEditAndSubmit">
         Submit
       </button>
     </div>

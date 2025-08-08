@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { CalenderUI } from '../calender-ui/calender-ui';
 import { DataService } from '../../data.service';
 import { DateService } from '../../date.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home-page',
@@ -23,11 +24,14 @@ export class HomePage {
   previousSelectionSavedAt: string = '';
   showEditMode: boolean = false;
   showSubmitModal: boolean = false;
+  status: 'none' | 'pending' | 'approved' = 'none';
+  hideEditAndSubmit: boolean = false;
 
   constructor(
     private authService: AuthService, 
     private dataService: DataService,
-    private dateService: DateService
+    private dateService: DateService,
+    private toastr: ToastrService
   ) {
     this.currentUser = this.authService.currentUser;
     this.currentUser.subscribe(user => {
@@ -90,7 +94,28 @@ export class HomePage {
   confirmSubmit() {
     // TODO: Add your submit logic here
     this.showSubmitModal = false;
-    alert('Dates submitted for admin approval!');
+    this.status = 'pending';
+    this.hideEditAndSubmit = true;
+    this.toastr.success('dates submitted for admin approval');
+    // Optionally, start polling for approval status
+    // setInterval(() => this.checkApprovalStatus(), 5000);
+  }
+
+  checkApprovalStatus() {
+    this.dateService.getApprovalStatus(this.employeeId).subscribe({
+      next: (response: any) => {
+        if (response.status === 'approved') {
+          this.status = 'approved';
+        } else if (response.status === 'pending') {
+          this.status = 'pending';
+        } else {
+          this.status = 'none';
+        }
+      },
+      error: () => {
+        // Optionally handle error
+      }
+    });
   }
 
   formatDate(date: Date): string {

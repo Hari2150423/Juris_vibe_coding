@@ -325,6 +325,32 @@
   margin-bottom: 0;
 }
 
+/* Status Tags */
+.status-tag {
+  margin-bottom: 1rem;
+}
+.info-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em 1em;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5em;
+}
+.info-pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+.info-approved {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .home-page-container {
