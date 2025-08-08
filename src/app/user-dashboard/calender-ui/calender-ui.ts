@@ -36,6 +36,7 @@ export class CalenderUI implements OnInit, OnChanges {
   elapsedWorkingDays: number = 0;
   selectedFile: File | null = null;
   private isSaving = false; // Add saving state to prevent double-clicks
+  private loadedToastShown = false; // Flag to show toast only once
 
   constructor(
     private authService: AuthService, 
@@ -348,12 +349,14 @@ export class CalenderUI implements OnInit, OnChanges {
             // Convert saved ISO strings back to Date objects
             this.selectedDates = response.selectedDates.map(dateStr => new Date(dateStr));
             console.log('Loaded saved dates:', this.selectedDates);
-            this.toastr.info(`Loaded ${this.selectedDates.length} previously saved working days`, 'Dates Loaded');
+            if (!this.loadedToastShown) {
+              this.toastr.info(`Loaded ${this.selectedDates.length} previously saved working days`, 'Dates Loaded');
+              this.loadedToastShown = true;
+            }
           }
         },
         error: (error) => {
           console.log('No previously saved dates found or error loading:', error);
-          // This is not necessarily an error - user might not have saved dates yet
         }
       });
     }

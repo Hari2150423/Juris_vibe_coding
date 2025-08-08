@@ -22,6 +22,7 @@ export class HomePage {
   previousSelectionDates: Date[] = [];
   previousSelectionSavedAt: string = '';
   showEditMode: boolean = false;
+  showSubmitModal: boolean = false;
 
   constructor(
     private authService: AuthService, 
@@ -76,6 +77,20 @@ export class HomePage {
     // When editing is completed successfully, exit edit mode and refresh the selection info
     this.showEditMode = false;
     this.checkForPreviousSelection();
+  }
+
+  openSubmitModal() {
+    this.showSubmitModal = true;
+  }
+
+  closeSubmitModal() {
+    this.showSubmitModal = false;
+  }
+
+  confirmSubmit() {
+    // TODO: Add your submit logic here
+    this.showSubmitModal = false;
+    alert('Dates submitted for admin approval!');
   }
 
   formatDate(date: Date): string {
