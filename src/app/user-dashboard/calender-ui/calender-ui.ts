@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth.service';
 import { DataService } from '../../data.service';
+import { DateService, SaveDateRequest } from '../../date.service';
 import { User } from '../../user.model';
 import { Observable } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-calender-ui',
@@ -12,7 +14,11 @@ import { Observable } from 'rxjs';
   templateUrl: './calender-ui.html',
   styleUrls: ['./calender-ui.css']
 })
-export class CalenderUI implements OnInit {
+export class CalenderUI implements OnInit, OnChanges {
+  @Input() editMode: boolean = false;
+  @Input() preSelectedDates: Date[] = [];
+  @Output() editCompleted = new EventEmitter<void>();
+
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                'July', 'August', 'September', 'October', 'November', 'December'];
@@ -24,11 +30,19 @@ export class CalenderUI implements OnInit {
   currentUser: Observable<User | null>;
   userLocation: string = '';
   userDesignation: string = '';
+  userId: number = 0;
+  employeeId: string = '';
   workingDaysInMonth: number = 0;
   elapsedWorkingDays: number = 0;
   selectedFile: File | null = null;
+  private isSaving = false; // Add saving state to prevent double-clicks
 
-  constructor(private authService: AuthService, private dataService: DataService) {
+  constructor(
+    private authService: AuthService, 
+    private dataService: DataService,
+    private dateService: DateService,
+    private toastr: ToastrService
+  ) {
     this.currentUser = this.authService.currentUser;
   }
 
@@ -36,16 +50,32 @@ export class CalenderUI implements OnInit {
     this.initializeCalendar();
     this.currentUser.subscribe(user => {
       if (user) {
+        this.employeeId = user.employeeId;
         this.dataService.getUsers().subscribe(data => {
           const foundUser = data.users.find(u => u.employeeId === user.employeeId);
           if (foundUser) {
+            this.userId = foundUser.id;
             this.userLocation = foundUser.location;
             this.userDesignation = foundUser.designation;
             this.calculateWorkingDaysInMonth();
+            
+            if (this.editMode && this.preSelectedDates.length > 0) {
+              // In edit mode, use the preselected dates
+              this.selectedDates = [...this.preSelectedDates];
+            } else {
+              // Normal mode, load saved dates from API
+              this.loadSavedDates();
+            }
           }
         });
       }
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['preSelectedDates'] && this.editMode) {
+      this.selectedDates = [...this.preSelectedDates];
+    }
   }
 
   initializeCalendar() {
@@ -233,6 +263,22 @@ export class CalenderUI implements OnInit {
   }
 
   saveSelection() {
+    console.log('CalendarUI: Save Selection button clicked');
+    console.log('CalendarUI: Current user data - userId:', this.userId, 'employeeId:', this.employeeId);
+    console.log('CalendarUI: Selected dates:', this.selectedDates);
+    
+    // Prevent multiple simultaneous save operations
+    if (this.isSaving) {
+      this.toastr.warning('Save operation already in progress...', 'Please Wait');
+      return;
+    }
+
+    // Check if user is still authenticated
+    if (!this.employeeId || !this.userId) {
+      this.toastr.error('User authentication lost. Please login again.', 'Authentication Error');
+      return;
+    }
+
     const isProgrammer = this.userDesignation === 'Programmer Analyst' || this.userDesignation === 'Programmer Analyst Trainee';
     const remainingWorkingDays = this.workingDaysInMonth - this.elapsedWorkingDays;
     
@@ -240,18 +286,76 @@ export class CalenderUI implements OnInit {
       ? this.selectedDates.length === remainingWorkingDays 
       : (this.selectedDates.length >= 12 && this.selectedDates.length <= remainingWorkingDays);
 
+    console.log('CalendarUI: Date criteria check - isProgrammer:', isProgrammer, 'isDateCriteriaMet:', isDateCriteriaMet);
+
     if (isDateCriteriaMet || this.selectedFile) {
-      console.log('Saved working days:', this.selectedDates);
-      if (this.selectedFile) {
-        console.log('Attached file:', this.selectedFile.name);
-      }
-      alert(`Successfully saved ${this.selectedDates.length} working days!`);
+      this.isSaving = true; // Set saving state
+      
+      // Prepare the data to send to the backend
+      const saveRequest: SaveDateRequest = {
+        userId: this.userId,
+        employeeId: this.employeeId,
+        selectedDates: this.selectedDates.map(date => date.toISOString()),
+        userDesignation: this.userDesignation,
+        userLocation: this.userLocation
+      };
+
+      console.log('CalendarUI: Prepared save request:', saveRequest);
+
+      // Show loading state
+      this.toastr.info('Saving selected dates...', 'Saving');
+
+      // Call the backend API to save the dates using Node.js fs module
+      console.log('CalendarUI: Calling dateService.saveSelectedDates()');
+      this.dateService.saveSelectedDates(saveRequest).subscribe({
+        next: (response) => {
+          console.log('CalendarUI: Success response from server:', response);
+          this.toastr.success(`Successfully saved ${response.savedDates} working days to database!`, 'Success');
+          
+          if (this.selectedFile) {
+            console.log('Attached file:', this.selectedFile.name);
+            this.toastr.info(`File attached: ${this.selectedFile.name}`, 'File Info');
+          }
+          
+          // If in edit mode, notify parent that editing is complete
+          if (this.editMode) {
+            this.editCompleted.emit();
+          }
+          
+          this.isSaving = false; // Reset saving state
+        },
+        error: (error) => {
+          console.error('CalendarUI: Error from server:', error);
+          this.toastr.error('Failed to save working days. Please try again.', 'Error');
+          this.isSaving = false; // Reset saving state
+        }
+      });
     } else {
       if (isProgrammer) {
-        alert(`Please select exactly ${remainingWorkingDays} working days.`);
+        this.toastr.warning(`Please select exactly ${remainingWorkingDays} working days.`, 'Selection Required');
       } else {
-        alert(`Please select at least 12 working days, up to ${remainingWorkingDays} days.`);
+        this.toastr.warning(`Please select at least 12 working days, up to ${remainingWorkingDays} days.`, 'Selection Required');
       }
+    }
+  }
+
+  // Load previously saved dates for the current user
+  loadSavedDates() {
+    if (this.employeeId) {
+      this.dateService.getUserSavedDates(this.employeeId).subscribe({
+        next: (response) => {
+          if (response.selectedDates && response.selectedDates.length > 0) {
+            // Convert saved ISO strings back to Date objects
+            this.selectedDates = response.selectedDates.map(dateStr => new Date(dateStr));
+            console.log('Loaded saved dates:', this.selectedDates);
+            this.toastr.info(`Loaded ${this.selectedDates.length} previously saved working days`, 'Dates Loaded');
+          }
+        },
+        error: (error) => {
+          console.log('No previously saved dates found or error loading:', error);
+          // This is not necessarily an error - user might not have saved dates yet
+        }
+      });
     }
   }
 

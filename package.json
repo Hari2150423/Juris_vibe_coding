@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "server": "node server.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -21,6 +22,7 @@
     "@angular/router": "^20.0.0",
     "@angular/ssr": "^20.0.2",
     "bootstrap": "^5.3.7",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",

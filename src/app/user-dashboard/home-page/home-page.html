@@ -3,8 +3,42 @@
     <h1>Welcome, {{ (currentUser | async)?.name }}!</h1>
     <p>Mark your roaster dates</p>
   </div>
+
+  <!-- Previous Selection Info Section -->
+  <div class="previous-selection-section" *ngIf="hasPreviousSelection && !showEditMode">
+    <div class="selection-info">
+      <h3>Your Current Roaster Selection</h3>
+      <p class="saved-time">Last saved: {{ formatSavedTime(previousSelectionSavedAt) }}</p>
+      <div class="dates-summary">
+        <p><strong>{{ previousSelectionDates.length }} dates selected</strong></p>
+        <div class="dates-preview">
+          <span class="date-chip" *ngFor="let date of previousSelectionDates.slice(0, 3)">
+            {{ formatDate(date) }}
+          </span>
+          <span *ngIf="previousSelectionDates.length > 3" class="more-dates">
+            +{{ previousSelectionDates.length - 3 }} more
+          </span>
+        </div>
+      </div>
+      <button class="edit-btn" (click)="enableEditMode()">
+        Edit Selection
+      </button>
+    </div>
+  </div>
   
-  <div class="calendar-section">
-    <app-calender-ui></app-calender-ui>
+  <!-- Calendar Section -->
+  <div class="calendar-section" *ngIf="!hasPreviousSelection || showEditMode">
+    <div *ngIf="showEditMode" class="edit-mode-header">
+      <h3>Edit Your Roaster Selection</h3>
+      <p>Modify your previously selected dates below:</p>
+      <button class="cancel-edit-btn" (click)="cancelEditMode()">
+        Cancel Edit
+      </button>
+    </div>
+    <app-calender-ui 
+      [editMode]="showEditMode" 
+      [preSelectedDates]="showEditMode ? previousSelectionDates : []"
+      (editCompleted)="onEditCompleted()">
+    </app-calender-ui>
   </div>
 </div>
