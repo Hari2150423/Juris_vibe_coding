@@ -14,8 +14,14 @@ export class AuthService {
 
   private getUserFromStorage(): User | null {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const storedUser = localStorage.getItem('currentUser');
-      return storedUser ? JSON.parse(storedUser) : null;
+      try {
+        const storedUser = localStorage.getItem('currentUser');
+        return storedUser ? JSON.parse(storedUser) : null;
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('currentUser');
+        return null;
+      }
     }
     return null;
   }
@@ -39,5 +45,15 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  // Method to refresh authentication state from localStorage (for SSR compatibility)
+  refreshAuthState(): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedUser = this.getUserFromStorage();
+      if (storedUser && !this.currentUserSubject.value) {
+        this.currentUserSubject.next(storedUser);
+      }
+    }
   }
 }

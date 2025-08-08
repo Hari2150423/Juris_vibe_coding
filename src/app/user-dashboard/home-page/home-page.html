@@ -4,30 +4,69 @@
     <p>Mark your roaster dates</p>
   </div>
 
-  <!-- Previous Selection Info Section -->
-  <div class="previous-selection-section" *ngIf="hasPreviousSelection && !showEditMode">
-    <div class="selection-info">
-      <h3>Your Current Roaster Selection</h3>
-      <p class="saved-time">Last saved: {{ formatSavedTime(previousSelectionSavedAt) }}</p>
+  <!-- Submitted Selection Status Section -->
+  <div class="submitted-selection-section" *ngIf="hasSubmittedSelection && submittedSelection">
+    <div class="selection-status-card" [ngClass]="getSelectionStatusClass()">
+      <div class="status-header">
+        <h3>Your Roaster Selection</h3>
+        <span class="status-badge">{{ getSelectionStatusText() }}</span>
+      </div>
+      <p class="submitted-time">
+        Submitted: {{ formatSavedTime(submittedSelection.submittedAt!) }}
+      </p>
       <div class="dates-summary">
-        <p><strong>{{ previousSelectionDates.length }} dates selected</strong></p>
+        <p><strong>{{ submittedSelection.selectedDates.length }} dates selected</strong></p>
         <div class="dates-preview">
-          <span class="date-chip" *ngFor="let date of previousSelectionDates.slice(0, 3)">
-            {{ formatDate(date) }}
+          <span class="date-chip" *ngFor="let dateStr of submittedSelection.selectedDates.slice(0, 3)">
+            {{ formatDateString(dateStr) }}
           </span>
-          <span *ngIf="previousSelectionDates.length > 3" class="more-dates">
-            +{{ previousSelectionDates.length - 3 }} more
+          <span *ngIf="submittedSelection.selectedDates.length > 3" class="more-dates">
+            +{{ submittedSelection.selectedDates.length - 3 }} more
           </span>
         </div>
       </div>
-      <button class="edit-btn" (click)="enableEditMode()">
-        Edit Selection
-      </button>
+      <div *ngIf="submittedSelection.status === 'rejected' && submittedSelection.adminComment" class="admin-comment">
+        <h4>Admin Comment:</h4>
+        <p>{{ submittedSelection.adminComment }}</p>
+        <p class="resubmit-note">Please create a new selection to resubmit.</p>
+      </div>
+      <div *ngIf="submittedSelection.status === 'approved' && submittedSelection.adminComment" class="admin-comment approved">
+        <h4>Admin Comment:</h4>
+        <p>{{ submittedSelection.adminComment }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Draft Selection Info Section -->
+  <div class="draft-selection-section" *ngIf="hasDraftSelection && !showEditMode && !hasSubmittedSelection">
+    <div class="selection-info draft">
+      <h3>Your Draft Roaster Selection</h3>
+      <p class="saved-time">Draft saved: {{ formatSavedTime(draftSelectionSavedAt) }}</p>
+      <div class="dates-summary">
+        <p><strong>{{ draftSelectionDates.length }} dates selected</strong></p>
+        <div class="dates-preview">
+          <span class="date-chip" *ngFor="let date of draftSelectionDates.slice(0, 3)">
+            {{ formatDate(date) }}
+          </span>
+          <span *ngIf="draftSelectionDates.length > 3" class="more-dates">
+            +{{ draftSelectionDates.length - 3 }} more
+          </span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="edit-btn" (click)="enableEditMode()">
+          Edit Selection
+        </button>
+        <button class="submit-btn" (click)="submitForReview()" [disabled]="isSubmitting">
+          <i class="fas fa-paper-plane"></i>
+          {{ isSubmitting ? 'Submitting...' : 'Submit to Review' }}
+        </button>
+      </div>
     </div>
   </div>
   
   <!-- Calendar Section -->
-  <div class="calendar-section" *ngIf="!hasPreviousSelection || showEditMode">
+  <div class="calendar-section" *ngIf="(!hasDraftSelection && !hasSubmittedSelection) || showEditMode || (hasSubmittedSelection && submittedSelection?.status === 'rejected')">
     <div *ngIf="showEditMode" class="edit-mode-header">
       <h3>Edit Your Roaster Selection</h3>
       <p>Modify your previously selected dates below:</p>
@@ -35,10 +74,15 @@
         Cancel Edit
       </button>
     </div>
+    <div *ngIf="hasSubmittedSelection && submittedSelection?.status === 'rejected'" class="resubmit-header">
+      <h3>Create New Roaster Selection</h3>
+      <p>Your previous selection was rejected. Please create a new selection:</p>
+    </div>
     <app-calender-ui 
       [editMode]="showEditMode" 
-      [preSelectedDates]="showEditMode ? previousSelectionDates : []"
-      (editCompleted)="onEditCompleted()">
+      [preSelectedDates]="showEditMode ? draftSelectionDates : []"
+      (editCompleted)="onEditCompleted()"
+      (draftSaved)="onDraftSaved()">
     </app-calender-ui>
   </div>
 </div>

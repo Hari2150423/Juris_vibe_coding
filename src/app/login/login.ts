@@ -17,7 +17,7 @@ import { AuthService } from '../auth.service';
 export class LoginComponent {
   showUserLogin = false;
   showAdminLogin = false;
-  designations = ['Manager', 'Senior Manager', 'Technical Lead'];
+  designations = ['Manager', 'Senior Manager', 'Technical Lead', 'System Administrator'];
   passwordFieldType = 'password';
 
   user = {
@@ -75,11 +75,30 @@ export class LoginComponent {
   }
 
   loginAdmin() {
-    this.dataService.getUsers().subscribe(data => {
+    this.dataService.getAllData().subscribe(data => {
+      // First check in admins collection (for new admin users like jey123)
+      const foundAdmin = data.admins.find((admin: User) =>
+        admin.employeeId === this.admin.employeeId
+      );
+      
+      if (foundAdmin) {
+        if (foundAdmin.password === this.admin.password) {
+          this.toastr.success('Admin login successful!');
+          this.authService.login(foundAdmin);
+          this.router.navigate(['/admin-dashboard']);
+          return;
+        } else {
+          this.toastr.error('Invalid password');
+          return;
+        }
+      }
+      
+      // Fallback to check in users collection for existing admin users
       const foundUser = data.users.find((u: User) =>
         u.employeeId === this.admin.employeeId &&
         u.designation === this.admin.designation
       );
+      
       if (foundUser) {
         if (foundUser.password === this.admin.password) {
           this.toastr.success('Login successful!');
@@ -89,7 +108,7 @@ export class LoginComponent {
           this.toastr.error('Invalid password');
         }
       } else {
-        this.toastr.error('User ID, password, and designation are invalid');
+        this.toastr.error('Admin credentials are invalid');
       }
     });
   }

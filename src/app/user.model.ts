@@ -5,4 +5,6 @@ export interface User {
   password?: string; // Make password optional for security
   designation: string;
   location: string;
+  role?: 'admin' | 'user'; // Add role field
+  permissions?: string[]; // Add permissions for admin users
 }
