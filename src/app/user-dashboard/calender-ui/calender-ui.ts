@@ -18,6 +18,7 @@ export class CalenderUI implements OnInit, OnChanges {
   @Input() editMode: boolean = false;
   @Input() preSelectedDates: Date[] = [];
   @Output() editCompleted = new EventEmitter<void>();
+  @Output() draftSaved = new EventEmitter<void>();
 
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
@@ -264,7 +265,7 @@ export class CalenderUI implements OnInit, OnChanges {
   }
 
   saveSelection() {
-    console.log('CalendarUI: Save Selection button clicked');
+    console.log('CalendarUI: Save Selection button clicked (as draft)');
     console.log('CalendarUI: Current user data - userId:', this.userId, 'employeeId:', this.employeeId);
     console.log('CalendarUI: Selected dates:', this.selectedDates);
     
@@ -304,14 +305,14 @@ export class CalenderUI implements OnInit, OnChanges {
       console.log('CalendarUI: Prepared save request:', saveRequest);
 
       // Show loading state
-      this.toastr.info('Saving selected dates...', 'Saving');
+      this.toastr.info('Saving draft selection...', 'Saving');
 
-      // Call the backend API to save the dates using Node.js fs module
+      // Call the backend API to save as draft
       console.log('CalendarUI: Calling dateService.saveSelectedDates()');
       this.dateService.saveSelectedDates(saveRequest).subscribe({
         next: (response) => {
           console.log('CalendarUI: Success response from server:', response);
-          this.toastr.success(`Successfully saved ${response.savedDates} working days to database!`, 'Success');
+          this.toastr.success(`Successfully saved ${response.savedDates} working days as draft!`, 'Draft Saved');
           
           if (this.selectedFile) {
             console.log('Attached file:', this.selectedFile.name);
@@ -321,13 +322,16 @@ export class CalenderUI implements OnInit, OnChanges {
           // If in edit mode, notify parent that editing is complete
           if (this.editMode) {
             this.editCompleted.emit();
+          } else {
+            // If not in edit mode, notify parent that draft was saved
+            this.draftSaved.emit();
           }
           
           this.isSaving = false; // Reset saving state
         },
         error: (error) => {
           console.error('CalendarUI: Error from server:', error);
-          this.toastr.error('Failed to save working days. Please try again.', 'Error');
+          this.toastr.error('Failed to save draft. Please try again.', 'Error');
           this.isSaving = false; // Reset saving state
         }
       });
@@ -343,20 +347,18 @@ export class CalenderUI implements OnInit, OnChanges {
   // Load previously saved dates for the current user
   loadSavedDates() {
     if (this.employeeId) {
-      this.dateService.getUserSavedDates(this.employeeId).subscribe({
+      this.dateService.getUserDraftDates(this.employeeId).subscribe({
         next: (response) => {
           if (response.selectedDates && response.selectedDates.length > 0) {
             // Convert saved ISO strings back to Date objects
             this.selectedDates = response.selectedDates.map(dateStr => new Date(dateStr));
-            console.log('Loaded saved dates:', this.selectedDates);
-            if (!this.loadedToastShown) {
-              this.toastr.info(`Loaded ${this.selectedDates.length} previously saved working days`, 'Dates Loaded');
-              this.loadedToastShown = true;
-            }
+            console.log('Loaded draft dates:', this.selectedDates);
+            this.toastr.info(`Loaded ${this.selectedDates.length} previously saved draft days`, 'Draft Loaded');
           }
         },
         error: (error) => {
-          console.log('No previously saved dates found or error loading:', error);
+          console.log('No previously saved draft found or error loading:', error);
+          // This is not necessarily an error - user might not have saved dates yet
         }
       });
     }
