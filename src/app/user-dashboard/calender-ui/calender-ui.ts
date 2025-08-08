@@ -37,6 +37,7 @@ export class CalenderUI implements OnInit, OnChanges {
   elapsedWorkingDays: number = 0;
   selectedFile: File | null = null;
   private isSaving = false; // Add saving state to prevent double-clicks
+  private loadedToastShown = false; // Flag to show toast only once
 
   constructor(
     private authService: AuthService, 

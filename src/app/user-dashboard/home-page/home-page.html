@@ -85,4 +85,23 @@
       (draftSaved)="onDraftSaved()">
     </app-calender-ui>
   </div>
+
+  <!-- Submit Confirmation Modal -->
+  <div *ngIf="showSubmitModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title-row">
+        <h2>Confirm Your Dates</h2>
+        <span class="selected-count-tag">{{ previousSelectionDates.length }} days selected</span>
+      </div>
+      <p>These are the chosen dates:</p>
+      <ul>
+        <li *ngFor="let date of previousSelectionDates"><span class="date-chip">{{ formatDate(date) }}</span></li>
+      </ul>
+      <p>Do you want to submit the above dates for admin approval?</p>
+      <div class="modal-actions">
+        <button class="edit-btn" (click)="confirmSubmit()">Confirm Submit</button>
+        <button class="cancel-edit-btn" (click)="closeSubmitModal()">No</button>
+      </div>
+    </div>
+  </div>
 </div>

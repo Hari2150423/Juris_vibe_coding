@@ -31,6 +31,8 @@ export class HomePage {
   
   showEditMode: boolean = false;
   isSubmitting: boolean = false;
+  showSubmitModal: boolean = false;
+  previousSelectionDates: Date[] = [];
 
   constructor(
     private authService: AuthService, 
@@ -195,6 +197,20 @@ export class HomePage {
       }
     }
     return '';
+  }
+
+  openSubmitModal() {
+    this.previousSelectionDates = [...this.draftSelectionDates];
+    this.showSubmitModal = true;
+  }
+
+  closeSubmitModal() {
+    this.showSubmitModal = false;
+  }
+
+  confirmSubmit() {
+    this.closeSubmitModal();
+    this.submitForReview();
   }
 
   formatDate(date: Date): string {
