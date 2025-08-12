@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth.service';
 import { User } from '../../user.model';
@@ -15,7 +15,7 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './home-page.html',
   styleUrls: ['./home-page.css']
 })
-export class HomePage {
+export class HomePage implements OnInit {
   currentUser: Observable<User | null>;
   userLocation: string = '';
   employeeId: string = '';
@@ -35,6 +35,7 @@ export class HomePage {
   status: 'none' | 'pending' | 'approved' = 'none';
   hideEditAndSubmit: boolean = false;
   previousSelectionDates: Date[] = [];
+  isSubmitted = false;
 
   constructor(
     private authService: AuthService, 
@@ -57,16 +58,42 @@ export class HomePage {
     });
   }
 
+  ngOnInit() {
+    this.checkMonthReset();
+    this.checkForSelections();
+  }
+
+  checkMonthReset() {
+    // If there is a submitted selection, check if it's from a previous month
+    if (this.submittedSelection && this.submittedSelection.submittedAt) {
+      const submittedDate = new Date(this.submittedSelection.submittedAt);
+      const now = new Date();
+      if (now.getFullYear() !== submittedDate.getFullYear() || now.getMonth() !== submittedDate.getMonth()) {
+        // Reset selections for new month
+        this.hasDraftSelection = false;
+        this.draftSelectionDates = [];
+        this.draftSelectionSavedAt = '';
+        this.hasSubmittedSelection = false;
+        this.submittedSelection = null;
+      }
+    }
+  }
+
   checkForSelections() {
-    this.checkForDraftSelection();
     this.checkForSubmittedSelection();
+    setTimeout(() => this.checkForDraftSelection(), 0);
   }
 
   checkForDraftSelection() {
     if (this.employeeId) {
       this.dateService.getUserDraftDates(this.employeeId).subscribe({
         next: (response) => {
-          if (response.selectedDates && response.selectedDates.length > 0) {
+          // If there is an approved submission and it's not the next month, ignore any draft
+          if (this.hasSubmittedSelection && this.submittedSelection?.status === 'approved' && !this.isNextMonth()) {
+            this.hasDraftSelection = false;
+            this.draftSelectionDates = [];
+            this.draftSelectionSavedAt = '';
+          } else if (response.selectedDates && response.selectedDates.length > 0) {
             this.hasDraftSelection = true;
             this.draftSelectionDates = response.selectedDates.map(dateStr => new Date(dateStr));
             this.draftSelectionSavedAt = response.savedAt;
@@ -85,21 +112,59 @@ export class HomePage {
 
   checkForSubmittedSelection() {
     if (this.employeeId) {
-      this.dateService.getUserSubmittedDates(this.employeeId).subscribe({
-        next: (response) => {
-          if (response && response.selectedDates && response.selectedDates.length > 0) {
+      // Get all approved selections for the user
+      this.dateService.getUserApprovedDates(this.employeeId).subscribe({
+        next: (approvedList) => {
+          const now = new Date();
+          // Filter for current month/year
+          const currentApproved = approvedList
+            .filter(sel => sel.month === (now.getMonth() + 1) && sel.year === now.getFullYear())
+            .sort((a, b) => new Date(b.reviewedAt || b.submittedAt || b.savedAt).getTime() - new Date(a.reviewedAt || a.submittedAt || a.savedAt).getTime());
+          if (currentApproved.length > 0) {
             this.hasSubmittedSelection = true;
-            this.submittedSelection = response;
-          } else {
-            this.hasSubmittedSelection = false;
-            this.submittedSelection = null;
+            this.submittedSelection = currentApproved[0];
+            this.submittedSelection.status = 'approved';
+            this.determineDisplayPriority();
+            return;
           }
-          this.determineDisplayPriority();
+          // If not approved, check for submitted (pending/rejected)
+          this.dateService.getUserSubmittedDates(this.employeeId).subscribe({
+            next: (response) => {
+              if (response && response.selectedDates && response.selectedDates.length > 0) {
+                this.hasSubmittedSelection = true;
+                this.submittedSelection = response;
+              } else {
+                this.hasSubmittedSelection = false;
+                this.submittedSelection = null;
+              }
+              this.determineDisplayPriority();
+            },
+            error: () => {
+              this.hasSubmittedSelection = false;
+              this.submittedSelection = null;
+              this.determineDisplayPriority();
+            }
+          });
         },
-        error: (error) => {
-          this.hasSubmittedSelection = false;
-          this.submittedSelection = null;
-          this.determineDisplayPriority();
+        error: () => {
+          // fallback to submitted if approved not found
+          this.dateService.getUserSubmittedDates(this.employeeId).subscribe({
+            next: (response) => {
+              if (response && response.selectedDates && response.selectedDates.length > 0) {
+                this.hasSubmittedSelection = true;
+                this.submittedSelection = response;
+              } else {
+                this.hasSubmittedSelection = false;
+                this.submittedSelection = null;
+              }
+              this.determineDisplayPriority();
+            },
+            error: () => {
+              this.hasSubmittedSelection = false;
+              this.submittedSelection = null;
+              this.determineDisplayPriority();
+            }
+          });
         }
       });
     }
@@ -118,6 +183,11 @@ export class HomePage {
         // If submitted is more recent, hide draft to prioritize showing submitted
         this.hasDraftSelection = false;
       }
+    }
+    // If approved and not next month, hide draft section and ensure edit mode is off
+    if (this.hasSubmittedSelection && this.submittedSelection?.status === 'approved' && !this.isNextMonth()) {
+      this.hasDraftSelection = false;
+      this.showEditMode = false;
     }
   }
 
@@ -213,6 +283,7 @@ export class HomePage {
   confirmSubmit() {
     // TODO: Add your submit logic here
     this.showSubmitModal = false;
+    this.isSubmitted = true;
     this.status = 'pending';
     this.hideEditAndSubmit = true;
     this.toastr.success('dates submitted for admin approval');
@@ -262,5 +333,14 @@ export class HomePage {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  }
+
+  isNextMonth(): boolean {
+    if (this.submittedSelection && this.submittedSelection.submittedAt) {
+      const submittedDate = new Date(this.submittedSelection.submittedAt);
+      const now = new Date();
+      return submittedDate.getFullYear() === now.getFullYear() && submittedDate.getMonth() === now.getMonth() + 1;
+    }
+    return false;
   }
 }

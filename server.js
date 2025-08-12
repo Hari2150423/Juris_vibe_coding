@@ -481,6 +481,22 @@ app.get('/api/users-not-submitted', async (req, res) => {
   }
 });
 
+// Get all approved selections for a user
+app.get('/api/get-approved/:employeeId', async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const db = await readDatabase();
+    if (!db || !db.approvedSelections) {
+      return res.json([]);
+    }
+    const approved = db.approvedSelections.filter(sel => sel.employeeId === employeeId);
+    res.json(approved);
+  } catch (error) {
+    console.error('Error fetching approved selections:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Database path: ${DB_PATH}`);

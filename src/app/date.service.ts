@@ -89,4 +89,8 @@ export class DateService {
   getUsersNotSubmitted(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users-not-submitted`);
   }
+
+  getUserApprovedDates(employeeId: string): Observable<UserDateRecord[]> {
+    return this.http.get<UserDateRecord[]>(`${this.apiUrl}/get-approved/${employeeId}`);
+  }
 }
