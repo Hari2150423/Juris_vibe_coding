@@ -2,10 +2,31 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
+const multer = require('multer');
 
 const app = express();
 const PORT = 3001;
 const DB_PATH = path.join(__dirname, 'src', 'assets', 'db.json');
+const UPLOADS_PATH = path.join(__dirname, 'uploads');
+
+// Multer config for image uploads only
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, UPLOADS_PATH);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+const imageFileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files (PNG, JPEG, JPG) are allowed!'), false);
+  }
+};
+const upload = multer({ storage: storage, fileFilter: imageFileFilter });
 
 // Middleware
 app.use(cors({
@@ -47,63 +68,58 @@ async function writeDatabase(data) {
   }
 }
 
-// Save selected dates as draft
-app.post('/api/save-draft', async (req, res) => {
+// Save selected dates as draft (with optional image attachment)
+app.post('/api/save-draft', upload.single('attachment'), async (req, res) => {
   try {
     const { userId, employeeId, selectedDates, userDesignation, userLocation } = req.body;
-    
-    if (!selectedDates || !Array.isArray(selectedDates)) {
-      return res.status(400).json({ error: 'Selected dates are required and must be an array' });
+    let parsedDates = selectedDates;
+    if (typeof selectedDates === 'string') {
+      try { parsedDates = JSON.parse(selectedDates); } catch { parsedDates = []; }
     }
-
+    if (!parsedDates || !Array.isArray(parsedDates)) {
+      parsedDates = []; // Default to empty array if not provided
+    }
+    
+    // Check if we have either dates or an attachment
+    if (parsedDates.length === 0 && !req.file) {
+      return res.status(400).json({ error: 'Either selected dates or an attachment is required' });
+    }
     const db = await readDatabase();
     if (!db) {
       return res.status(500).json({ error: 'Failed to read database' });
     }
-
-    // Initialize draftSelections array if it doesn't exist
     if (!db.draftSelections) {
       db.draftSelections = [];
     }
-
-    // Find existing draft record for this user
-    const existingRecordIndex = db.draftSelections.findIndex(record => 
-      record.employeeId === employeeId
-    );
-
+    const existingRecordIndex = db.draftSelections.findIndex(record => record.employeeId === employeeId);
     const dateRecord = {
       id: existingRecordIndex >= 0 ? db.draftSelections[existingRecordIndex].id : Date.now(),
       userId: userId,
       employeeId: employeeId,
       userDesignation: userDesignation,
       userLocation: userLocation,
-      selectedDates: selectedDates,
+      selectedDates: parsedDates,
       savedAt: new Date().toISOString(),
       status: 'draft',
       month: new Date().getMonth() + 1,
-      year: new Date().getFullYear()
+      year: new Date().getFullYear(),
+      attachment: req.file ? req.file.filename : undefined
     };
-
     if (existingRecordIndex >= 0) {
-      // Update existing draft record
       db.draftSelections[existingRecordIndex] = dateRecord;
     } else {
-      // Add new draft record
       db.draftSelections.push(dateRecord);
     }
-
     const success = await writeDatabase(db);
-    
     if (success) {
       res.json({ 
         message: 'Draft saved successfully', 
-        savedDates: selectedDates.length,
+        savedDates: parsedDates.length,
         record: dateRecord
       });
     } else {
       res.status(500).json({ error: 'Failed to save draft to database' });
     }
-
   } catch (error) {
     console.error('Error saving draft:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -8,6 +8,7 @@ export interface SaveDateRequest {
   selectedDates: string[];
   userDesignation: string;
   userLocation: string;
+  attachment?: File | string | null;
 }
 
 export interface SaveDateResponse {
@@ -31,6 +32,7 @@ export interface UserDateRecord {
   reviewedAt?: string;
   month: number;
   year: number;
+  attachment?: string;
 }
 
 @Injectable({
@@ -42,9 +44,16 @@ export class DateService {
   constructor(private http: HttpClient) {}
 
   saveSelectedDates(data: SaveDateRequest): Observable<SaveDateResponse> {
-    console.log('DateService: Making API call to save draft dates:', data);
-    console.log('DateService: API URL:', `${this.apiUrl}/save-draft`);
-    return this.http.post<SaveDateResponse>(`${this.apiUrl}/save-draft`, data);
+    const formData = new FormData();
+    formData.append('userId', data.userId.toString());
+    formData.append('employeeId', data.employeeId);
+    formData.append('selectedDates', JSON.stringify(data.selectedDates));
+    formData.append('userDesignation', data.userDesignation);
+    formData.append('userLocation', data.userLocation);
+    if (data.attachment && data.attachment instanceof File) {
+      formData.append('attachment', data.attachment);
+    }
+    return this.http.post<SaveDateResponse>(`${this.apiUrl}/save-draft`, formData);
   }
 
   submitForReview(employeeId: string): Observable<SaveDateResponse> {

@@ -695,3 +695,9 @@
   margin: 0;
   box-shadow: 0 1px 4px #667eea22;
 }
+
+.attachment-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}

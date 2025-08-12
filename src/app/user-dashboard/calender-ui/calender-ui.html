@@ -89,7 +89,7 @@
       <button 
         class="action-btn save-btn" 
         (click)="saveSelection()"
-        [disabled]="!((userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length === (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length >= 12 && selectedDates.length <= (workingDaysInMonth - elapsedWorkingDays)) || selectedFile)">
+        [disabled]="!(selectedFile || (userDesignation === 'Programmer Analyst' || userDesignation === 'Programmer Analyst Trainee' ? selectedDates.length === (workingDaysInMonth - elapsedWorkingDays) : selectedDates.length >= 12 && selectedDates.length <= (workingDaysInMonth - elapsedWorkingDays)))">
         Save Selection
       </button>
       <button class="action-btn clear-btn" (click)="clearSelection()">

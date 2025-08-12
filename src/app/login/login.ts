@@ -17,7 +17,7 @@ import { AuthService } from '../auth.service';
 export class LoginComponent {
   showUserLogin = false;
   showAdminLogin = false;
-  designations = ['Manager', 'Senior Manager', 'Technical Lead', 'System Administrator'];
+  designations = ['System Administrator'];
   passwordFieldType = 'password';
 
   user = {
@@ -75,10 +75,17 @@ export class LoginComponent {
   }
 
   loginAdmin() {
+    // Check if designation is System Administrator
+    if (this.admin.designation !== 'System Administrator') {
+      this.toastr.error('Access denied. Only System Administrator can access admin functions.');
+      return;
+    }
+
     this.dataService.getAllData().subscribe(data => {
       // First check in admins collection (for new admin users like jey123)
       const foundAdmin = data.admins.find((admin: User) =>
-        admin.employeeId === this.admin.employeeId
+        admin.employeeId === this.admin.employeeId &&
+        admin.designation === 'System Administrator'
       );
       
       if (foundAdmin) {
@@ -96,7 +103,7 @@ export class LoginComponent {
       // Fallback to check in users collection for existing admin users
       const foundUser = data.users.find((u: User) =>
         u.employeeId === this.admin.employeeId &&
-        u.designation === this.admin.designation
+        u.designation === 'System Administrator'
       );
       
       if (foundUser) {

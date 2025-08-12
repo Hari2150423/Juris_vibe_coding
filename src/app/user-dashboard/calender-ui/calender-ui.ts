@@ -288,58 +288,52 @@ export class CalenderUI implements OnInit, OnChanges {
       ? this.selectedDates.length === remainingWorkingDays 
       : (this.selectedDates.length >= 12 && this.selectedDates.length <= remainingWorkingDays);
 
-    console.log('CalendarUI: Date criteria check - isProgrammer:', isProgrammer, 'isDateCriteriaMet:', isDateCriteriaMet);
+    // Allow submission if only an image is attached
+    const canSubmit = isDateCriteriaMet || !!this.selectedFile;
 
-    if (isDateCriteriaMet || this.selectedFile) {
+    if (canSubmit) {
       this.isSaving = true; // Set saving state
-      
-      // Prepare the data to send to the backend
       const saveRequest: SaveDateRequest = {
         userId: this.userId,
         employeeId: this.employeeId,
         selectedDates: this.selectedDates.map(date => date.toISOString()),
         userDesignation: this.userDesignation,
-        userLocation: this.userLocation
+        userLocation: this.userLocation,
+        attachment: this.selectedFile || undefined
       };
-
-      console.log('CalendarUI: Prepared save request:', saveRequest);
-
-      // Show loading state
       this.toastr.info('Saving draft selection...', 'Saving');
-
-      // Call the backend API to save as draft
-      console.log('CalendarUI: Calling dateService.saveSelectedDates()');
       this.dateService.saveSelectedDates(saveRequest).subscribe({
         next: (response) => {
-          console.log('CalendarUI: Success response from server:', response);
           this.toastr.success(`Successfully saved ${response.savedDates} working days as draft!`, 'Draft Saved');
-          
           if (this.selectedFile) {
-            console.log('Attached file:', this.selectedFile.name);
             this.toastr.info(`File attached: ${this.selectedFile.name}`, 'File Info');
           }
-          
-          // If in edit mode, notify parent that editing is complete
-          if (this.editMode) {
+          // If only an image is attached and no dates, immediately submit for admin approval
+          if (this.selectedFile && (!this.selectedDates || this.selectedDates.length === 0)) {
+            // Emit a custom event or call a method to trigger submit for admin approval
+            if (this.editMode) {
+              this.editCompleted.emit();
+            } else {
+              this.draftSaved.emit();
+            }
+            // Optionally, you can call a parent method to auto-submit
+          } else if (this.editMode) {
             this.editCompleted.emit();
           } else {
-            // If not in edit mode, notify parent that draft was saved
             this.draftSaved.emit();
           }
-          
           this.isSaving = false; // Reset saving state
         },
         error: (error) => {
-          console.error('CalendarUI: Error from server:', error);
           this.toastr.error('Failed to save draft. Please try again.', 'Error');
           this.isSaving = false; // Reset saving state
         }
       });
     } else {
       if (isProgrammer) {
-        this.toastr.warning(`Please select exactly ${remainingWorkingDays} working days.`, 'Selection Required');
+        this.toastr.warning(`Please select exactly ${remainingWorkingDays} working days or attach an image.`, 'Selection Required');
       } else {
-        this.toastr.warning(`Please select at least 12 working days, up to ${remainingWorkingDays} days.`, 'Selection Required');
+        this.toastr.warning(`Please select at least 12 working days, up to ${remainingWorkingDays} days, or attach an image.`, 'Selection Required');
       }
     }
   }
@@ -368,12 +362,12 @@ export class CalenderUI implements OnInit, OnChanges {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      if (file.type === 'image/png' || file.type === 'image/jpeg') {
+      if (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg') {
         this.selectedFile = file;
         alert(`File selected: ${file.name}`);
       } else {
         this.selectedFile = null;
-        alert('Please select a PNG or JPEG image.');
+        alert('Please select a PNG, JPG, or JPEG image.');
       }
     }
   }

@@ -24,6 +24,7 @@ export class HomePage implements OnInit {
   hasDraftSelection: boolean = false;
   draftSelectionDates: Date[] = [];
   draftSelectionSavedAt: string = '';
+  draftSelection: UserDateRecord | null = null;
   
   // Submitted selection data
   hasSubmittedSelection: boolean = false;
@@ -33,6 +34,7 @@ export class HomePage implements OnInit {
   isSubmitting: boolean = false;
   showSubmitModal: boolean = false;
   showAllDatesModal: boolean = false;
+  showDraftDatesModal: boolean = false;
   status: 'none' | 'pending' | 'approved' = 'none';
   hideEditAndSubmit: boolean = false;
   previousSelectionDates: Date[] = [];
@@ -89,22 +91,27 @@ export class HomePage implements OnInit {
     if (this.employeeId) {
       this.dateService.getUserDraftDates(this.employeeId).subscribe({
         next: (response) => {
-          // If there is an approved submission and it's not the next month, ignore any draft
+          const hasDates = response.selectedDates && response.selectedDates.length > 0;
+          const hasAttachment = !!response.attachment;
           if (this.hasSubmittedSelection && this.submittedSelection?.status === 'approved' && !this.isNextMonth()) {
             this.hasDraftSelection = false;
             this.draftSelectionDates = [];
             this.draftSelectionSavedAt = '';
-          } else if (response.selectedDates && response.selectedDates.length > 0) {
+            this.draftSelection = null;
+          } else if (hasDates || hasAttachment) {
             this.hasDraftSelection = true;
-            this.draftSelectionDates = response.selectedDates.map(dateStr => new Date(dateStr));
+            this.draftSelectionDates = hasDates ? response.selectedDates.map(dateStr => new Date(dateStr)) : [];
             this.draftSelectionSavedAt = response.savedAt;
+            this.draftSelection = response;
           } else {
             this.hasDraftSelection = false;
+            this.draftSelection = null;
           }
           this.determineDisplayPriority();
         },
         error: (error) => {
           this.hasDraftSelection = false;
+          this.draftSelection = null;
           this.determineDisplayPriority();
         }
       });
@@ -131,7 +138,7 @@ export class HomePage implements OnInit {
           // If not approved, check for submitted (pending/rejected)
           this.dateService.getUserSubmittedDates(this.employeeId).subscribe({
             next: (response) => {
-              if (response && response.selectedDates && response.selectedDates.length > 0) {
+              if (response && ((response.selectedDates && response.selectedDates.length > 0) || response.attachment)) {
                 this.hasSubmittedSelection = true;
                 this.submittedSelection = response;
               } else {
@@ -151,7 +158,7 @@ export class HomePage implements OnInit {
           // fallback to submitted if approved not found
           this.dateService.getUserSubmittedDates(this.employeeId).subscribe({
             next: (response) => {
-              if (response && response.selectedDates && response.selectedDates.length > 0) {
+              if (response && ((response.selectedDates && response.selectedDates.length > 0) || response.attachment)) {
                 this.hasSubmittedSelection = true;
                 this.submittedSelection = response;
               } else {

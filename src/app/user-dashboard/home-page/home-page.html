@@ -15,8 +15,15 @@
         Submitted: {{ formatSavedTime(submittedSelection.submittedAt!) }}
       </p>
       <div class="dates-summary">
-        <p><strong>{{ submittedSelection.selectedDates.length }} dates selected</strong></p>
+        <p><strong>{{ submittedSelection.selectedDates ? submittedSelection.selectedDates.length : 0 }} dates selected</strong></p>
         <button class="view-dates-btn" (click)="showAllDatesModal = true">View Selected Dates</button>
+        <ng-container *ngIf="submittedSelection.attachment">
+          <a class="attachment-link" [href]="'/uploads/' + submittedSelection.attachment" target="_blank" title="View Attachment">
+            <span class="attachment-icon" style="font-size:1em;vertical-align:middle;font-style:italic;">
+              📎 View Attachment
+            </span>
+          </a>
+        </ng-container>
       </div>
       <div *ngIf="submittedSelection.status === 'rejected' && submittedSelection.adminComment" class="admin-comment">
         <h4>Admin Comment:</h4>
@@ -37,14 +44,14 @@
       <p class="saved-time">Draft saved: {{ formatSavedTime(draftSelectionSavedAt) }}</p>
       <div class="dates-summary">
         <p><strong>{{ draftSelectionDates.length }} dates selected</strong></p>
-        <div class="dates-preview">
-          <span class="date-chip" *ngFor="let date of draftSelectionDates.slice(0, 3)">
-            {{ formatDate(date) }}
-          </span>
-          <span *ngIf="draftSelectionDates.length > 3" class="more-dates">
-            +{{ draftSelectionDates.length - 3 }} more
-          </span>
-        </div>
+        <button class="view-dates-btn" (click)="showDraftDatesModal = true">View Selected Dates</button>
+        <ng-container *ngIf="draftSelection && draftSelection.attachment">
+          <a class="attachment-link" [href]="'/uploads/' + draftSelection.attachment" target="_blank" title="View Attachment">
+            <span class="attachment-icon" style="font-size:1em;vertical-align:middle;font-style:italic;">
+              📎 View Attachment
+            </span>
+          </a>
+        </ng-container>
       </div>
       <div class="status-tag" *ngIf="status === 'pending'">
         <span class="info-tag info-pending">&#9432; Approval Pending</span>
@@ -56,7 +63,7 @@
         <button class="edit-btn" (click)="enableEditMode()" [disabled]="isSubmitted">
           Edit Selection
         </button>
-        <button class="submit-btn" (click)="openSubmitModal()" [disabled]="isSubmitted">
+        <button class="submit-btn" (click)="openSubmitModal()">
           Submit
         </button>
       </div>
@@ -91,11 +98,12 @@
         <h2>Confirm Your Dates</h2>
         <span class="selected-count-tag">{{ previousSelectionDates.length }} days selected</span>
       </div>
-      <p>These are the chosen dates:</p>
-      <ul>
+      <p *ngIf="previousSelectionDates.length > 0">These are the chosen dates:</p>
+      <ul *ngIf="previousSelectionDates.length > 0">
         <li *ngFor="let date of previousSelectionDates"><span class="date-chip">{{ formatDate(date) }}</span></li>
       </ul>
-      <p>Do you want to submit the above dates for admin approval?</p>
+      <p *ngIf="previousSelectionDates.length > 0">Do you want to submit the above dates for admin approval?</p>
+      <p *ngIf="previousSelectionDates.length === 0">Do you want to submit your selection for admin approval?</p>
       <div class="modal-actions">
         <button class="edit-btn" (click)="confirmSubmit()">Confirm Submit</button>
         <button class="cancel-edit-btn" (click)="closeSubmitModal()">No</button>
@@ -103,7 +111,7 @@
     </div>
   </div>
 
-  <!-- All Selected Dates Modal -->
+  <!-- All Selected Dates Modal (for submitted/pending/approved) -->
   <div *ngIf="showAllDatesModal" class="custom-modal-overlay">
     <div class="custom-modal-content">
       <div class="custom-modal-header">
@@ -111,11 +119,30 @@
         <button class="close-modal-btn" (click)="showAllDatesModal = false">&times;</button>
       </div>
       <div class="custom-modal-body">
-        <ul class="all-dates-list">
-          <li *ngFor="let dateStr of submittedSelection?.selectedDates">
+        <ul class="all-dates-list" *ngIf="(submittedSelection?.selectedDates?.length || 0) > 0">
+          <li *ngFor="let dateStr of (submittedSelection?.selectedDates || [])">
             <span class="date-chip">{{ formatDateString(dateStr) }}</span>
           </li>
         </ul>
+        <div *ngIf="!submittedSelection?.selectedDates || (submittedSelection?.selectedDates?.length || 0) === 0" class="no-dates-selected">No dates selected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Selected Dates Modal (for draft) -->
+  <div *ngIf="showDraftDatesModal" class="custom-modal-overlay">
+    <div class="custom-modal-content">
+      <div class="custom-modal-header">
+        <h3>All Selected Dates</h3>
+        <button class="close-modal-btn" (click)="showDraftDatesModal = false">&times;</button>
+      </div>
+      <div class="custom-modal-body">
+        <ul class="all-dates-list" *ngIf="draftSelectionDates.length > 0">
+          <li *ngFor="let date of draftSelectionDates">
+            <span class="date-chip">{{ formatDate(date) }}</span>
+          </li>
+        </ul>
+        <div *ngIf="draftSelectionDates.length === 0" class="no-dates-selected">No dates selected</div>
       </div>
     </div>
   </div>
