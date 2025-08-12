@@ -32,6 +32,7 @@ export class HomePage implements OnInit {
   showEditMode: boolean = false;
   isSubmitting: boolean = false;
   showSubmitModal: boolean = false;
+  showAllDatesModal: boolean = false;
   status: 'none' | 'pending' | 'approved' = 'none';
   hideEditAndSubmit: boolean = false;
   previousSelectionDates: Date[] = [];

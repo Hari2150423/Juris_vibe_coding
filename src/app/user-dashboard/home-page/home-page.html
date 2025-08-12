@@ -16,14 +16,7 @@
       </p>
       <div class="dates-summary">
         <p><strong>{{ submittedSelection.selectedDates.length }} dates selected</strong></p>
-        <div class="dates-preview">
-          <span class="date-chip" *ngFor="let dateStr of submittedSelection.selectedDates.slice(0, 3)">
-            {{ formatDateString(dateStr) }}
-          </span>
-          <span *ngIf="submittedSelection.selectedDates.length > 3" class="more-dates">
-            +{{ submittedSelection.selectedDates.length - 3 }} more
-          </span>
-        </div>
+        <button class="view-dates-btn" (click)="showAllDatesModal = true">View Selected Dates</button>
       </div>
       <div *ngIf="submittedSelection.status === 'rejected' && submittedSelection.adminComment" class="admin-comment">
         <h4>Admin Comment:</h4>
@@ -106,6 +99,23 @@
       <div class="modal-actions">
         <button class="edit-btn" (click)="confirmSubmit()">Confirm Submit</button>
         <button class="cancel-edit-btn" (click)="closeSubmitModal()">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Selected Dates Modal -->
+  <div *ngIf="showAllDatesModal" class="custom-modal-overlay">
+    <div class="custom-modal-content">
+      <div class="custom-modal-header">
+        <h3>All Selected Dates</h3>
+        <button class="close-modal-btn" (click)="showAllDatesModal = false">&times;</button>
+      </div>
+      <div class="custom-modal-body">
+        <ul class="all-dates-list">
+          <li *ngFor="let dateStr of submittedSelection?.selectedDates">
+            <span class="date-chip">{{ formatDateString(dateStr) }}</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

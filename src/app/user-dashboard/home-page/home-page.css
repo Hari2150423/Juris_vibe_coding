@@ -598,3 +598,100 @@
     padding: 1.2rem 0.5rem 1rem 0.5rem;
   }
 }
+
+.view-dates-btn {
+  background: #667eea;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  margin-top: 0.8em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #667eea22;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.view-dates-btn:hover {
+  background: #5a67d8;
+  box-shadow: 0 4px 16px #667eea33;
+}
+
+.custom-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(44, 62, 80, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.custom-modal-content {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(44, 62, 80, 0.18);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+  min-width: 320px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.custom-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+
+.custom-modal-header h3 {
+  margin: 0;
+  color: #667eea;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #667eea;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.2em;
+  transition: color 0.2s;
+}
+.close-modal-btn:hover {
+  color: #2c3e50;
+}
+
+.custom-modal-body {
+  padding-bottom: 0.5rem;
+}
+
+.all-dates-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.all-dates-list li {
+  margin: 0;
+}
+
+.all-dates-list .date-chip {
+  background: #667eea;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.2em 0.9em;
+  font-size: 0.98em;
+  font-weight: 500;
+  margin: 0;
+  box-shadow: 0 1px 4px #667eea22;
+}
