@@ -1,0 +1,21 @@
+<header class="app-header">
+  <div class="logo">
+    Workday Wizard
+  </div>
+  <div class="header-right">
+    <ng-container *ngIf="currentUser | async as user; else showQuote">
+      <div class="hamburger-menu" *ngIf="user">
+        <i class="fas fa-bars"></i>
+        <div class="dropdown-menu">
+          <div class="user-id">{{ user.employeeId }}</div>
+          <button class="logout-btn" (click)="logout()">Logout</button>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #showQuote>
+      <blockquote class="header-quote">
+        "The best way to predict the future is to create it."
+      </blockquote>
+    </ng-template>
+  </div>
+</header>

@@ -1,0 +1,337 @@
+{
+  "admins": [
+    {
+      "id": 1,
+      "name": "Jey Admin",
+      "employeeId": "jey123",
+      "password": "jeyisthebest",
+      "designation": "System Administrator",
+      "location": "Head Office",
+      "role": "admin",
+      "permissions": [
+        "view_all_users",
+        "manage_bookings",
+        "system_settings",
+        "user_management"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "employeeId": "user123",
+      "password": "password123",
+      "designation": "Programmer Analyst",
+      "location": "New York"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "employeeId": "admin456",
+      "password": "password456",
+      "designation": "Manager",
+      "location": "London"
+    },
+    {
+      "id": 3,
+      "name": "Peter Jones",
+      "employeeId": "user789",
+      "password": "password789",
+      "designation": "Programmer Analyst Trainee",
+      "location": "San Francisco"
+    },
+    {
+      "id": 4,
+      "name": "Alice Johnson",
+      "employeeId": "alice001",
+      "password": "alice123",
+      "designation": "Senior Analyst",
+      "location": "Chicago",
+      "role": "user"
+    },
+    {
+      "id": 5,
+      "name": "Hari Krishna",
+      "employeeId": "123456",
+      "password": "123456789",
+      "designation": "Jr. Developer",
+      "location": "Coimbatore",
+      "role": "user"
+    },
+    {
+      "id": 6,
+      "name": "Karthik Hero",
+      "employeeId": "123457",
+      "password": "123456789",
+      "designation": "SDE 2",
+      "location": "London",
+      "role": "user"
+    },
+    {
+      "id": 7,
+      "name": "Hemant",
+      "employeeId": "9876",
+      "password": "987654321",
+      "designation": "Jr. Developer",
+      "location": "Coimbatore",
+      "role": "user"
+    },
+    {
+      "id": 8,
+      "name": "Niddhish",
+      "employeeId": "6789",
+      "password": "987654321",
+      "designation": "Jr. Developer",
+      "location": "Coimbatore",
+      "role": "user"
+    }
+  ],
+  "draftSelections": [
+    {
+      "id": 1755065432899,
+      "userId": "3",
+      "employeeId": "user789",
+      "userDesignation": "Programmer Analyst Trainee",
+      "userLocation": "San Francisco",
+      "selectedDates": [
+        "2025-08-13T06:10:10.467Z",
+        "2025-08-14T06:10:10.467Z",
+        "2025-08-15T06:10:10.467Z",
+        "2025-08-18T06:10:10.467Z",
+        "2025-08-19T06:10:10.467Z",
+        "2025-08-20T06:10:10.467Z",
+        "2025-08-21T06:10:10.467Z",
+        "2025-08-22T06:10:10.467Z",
+        "2025-08-25T06:10:10.467Z",
+        "2025-08-26T06:10:10.467Z",
+        "2025-08-27T06:10:10.467Z",
+        "2025-08-28T06:10:10.467Z",
+        "2025-08-29T06:10:10.467Z"
+      ],
+      "savedAt": "2025-08-13T06:10:32.899Z",
+      "status": "draft",
+      "month": 8,
+      "year": 2025
+    }
+  ],
+  "submittedSelections": [
+    {
+      "id": 1755062092900,
+      "userId": 2,
+      "employeeId": "admin456",
+      "userDesignation": "Manager",
+      "userLocation": "London",
+      "selectedDates": [
+        "2025-08-16T05:14:32.252Z",
+        "2025-08-17T05:14:32.252Z",
+        "2025-08-20T05:14:32.252Z",
+        "2025-08-21T05:14:32.252Z",
+        "2025-08-23T05:14:32.252Z"
+      ],
+      "savedAt": "2025-08-13T06:14:52.900Z",
+      "status": "rejected",
+      "month": 8,
+      "year": 2025,
+      "submittedAt": "2025-08-13T06:14:56.900Z",
+      "attachment": "1723527296900-sample-document.jpg",
+      "adminComment": "do again",
+      "reviewedAt": "2025-08-13T06:07:22.523Z"
+    },
+    {
+      "id": 1755062092901,
+      "userId": 3,
+      "employeeId": "user789",
+      "userDesignation": "Programmer Analyst Trainee",
+      "userLocation": "San Francisco",
+      "selectedDates": [
+        "2025-08-14T05:14:32.252Z",
+        "2025-08-15T05:14:32.252Z",
+        "2025-08-19T05:14:32.252Z",
+        "2025-08-22T05:14:32.252Z"
+      ],
+      "savedAt": "2025-08-13T07:14:52.901Z",
+      "status": "rejected",
+      "month": 8,
+      "year": 2025,
+      "submittedAt": "2025-08-13T07:14:56.901Z",
+      "adminComment": "again",
+      "reviewedAt": "2025-08-13T06:09:53.053Z"
+    }
+  ],
+  "approvedSelections": [
+    {
+      "id": 1755062092867,
+      "userId": "1",
+      "employeeId": "user123",
+      "userDesignation": "Programmer Analyst",
+      "userLocation": "New York",
+      "selectedDates": [
+        "2025-08-13T05:14:32.252Z",
+        "2025-08-14T05:14:32.252Z",
+        "2025-08-15T05:14:32.252Z",
+        "2025-08-18T05:14:32.252Z",
+        "2025-08-19T05:14:32.252Z",
+        "2025-08-20T05:14:32.252Z",
+        "2025-08-21T05:14:32.252Z",
+        "2025-08-22T05:14:32.252Z",
+        "2025-08-25T05:14:32.252Z",
+        "2025-08-26T05:14:32.252Z",
+        "2025-08-27T05:14:32.252Z",
+        "2025-08-28T05:14:32.252Z",
+        "2025-08-29T05:14:32.252Z"
+      ],
+      "savedAt": "2025-08-13T05:14:52.867Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "submittedAt": "2025-08-13T05:14:56.785Z",
+      "adminComment": "ok",
+      "reviewedAt": "2025-08-13T05:15:19.629Z"
+    },
+    {
+      "id": 1755065853875,
+      "userId": "2",
+      "employeeId": "admin456",
+      "userDesignation": "Manager",
+      "userLocation": "London",
+      "selectedDates": [
+        "2025-08-13T06:17:05.688Z",
+        "2025-08-14T06:17:05.688Z",
+        "2025-08-15T06:17:05.688Z",
+        "2025-08-18T06:17:05.688Z",
+        "2025-08-19T06:17:05.688Z",
+        "2025-08-20T06:17:05.688Z",
+        "2025-08-21T06:17:05.688Z",
+        "2025-08-22T06:17:05.688Z",
+        "2025-08-25T06:17:05.688Z",
+        "2025-08-26T06:17:05.688Z",
+        "2025-08-27T06:17:05.688Z",
+        "2025-08-28T06:17:05.688Z",
+        "2025-08-29T06:17:05.688Z"
+      ],
+      "savedAt": "2025-08-13T06:17:33.875Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755065853849-686962841-image 1.png",
+      "submittedAt": "2025-08-13T06:17:43.020Z",
+      "reviewedAt": "2025-08-13T06:19:37.236Z"
+    },
+    {
+      "id": 1755066145839,
+      "userId": "5",
+      "employeeId": "123456",
+      "userDesignation": "Jr. Developer",
+      "userLocation": "Coimbatore",
+      "selectedDates": [
+        "2025-08-13T06:22:00.768Z",
+        "2025-08-14T06:22:00.768Z",
+        "2025-08-15T06:22:00.768Z",
+        "2025-08-18T06:22:00.768Z",
+        "2025-08-19T06:22:00.768Z",
+        "2025-08-20T06:22:00.768Z",
+        "2025-08-21T06:22:00.768Z",
+        "2025-08-22T06:22:00.768Z",
+        "2025-08-25T06:22:00.768Z",
+        "2025-08-26T06:22:00.768Z",
+        "2025-08-27T06:22:00.768Z",
+        "2025-08-28T06:22:00.768Z",
+        "2025-08-29T06:22:00.768Z"
+      ],
+      "savedAt": "2025-08-13T06:22:25.839Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755066145831-96829186-image 1.png",
+      "submittedAt": "2025-08-13T06:22:36.177Z",
+      "adminComment": "ok",
+      "reviewedAt": "2025-08-13T06:23:22.924Z"
+    },
+    {
+      "id": 1755068640070,
+      "userId": "4",
+      "employeeId": "alice001",
+      "userDesignation": "Senior Analyst",
+      "userLocation": "Chicago",
+      "selectedDates": [
+        "2025-08-13T07:03:37.966Z",
+        "2025-08-14T07:03:37.966Z",
+        "2025-08-15T07:03:37.966Z",
+        "2025-08-18T07:03:37.966Z",
+        "2025-08-19T07:03:37.966Z",
+        "2025-08-20T07:03:37.966Z",
+        "2025-08-21T07:03:37.966Z",
+        "2025-08-22T07:03:37.966Z",
+        "2025-08-25T07:03:37.966Z",
+        "2025-08-26T07:03:37.966Z",
+        "2025-08-27T07:03:37.966Z",
+        "2025-08-28T07:03:37.966Z",
+        "2025-08-29T07:03:37.966Z"
+      ],
+      "savedAt": "2025-08-13T07:04:00.070Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755068640060-541976105-image 1.png",
+      "submittedAt": "2025-08-13T07:04:06.709Z",
+      "reviewedAt": "2025-08-13T07:11:21.013Z"
+    },
+    {
+      "id": 1755069300226,
+      "userId": "6",
+      "employeeId": "123457",
+      "userDesignation": "SDE 2",
+      "userLocation": "London",
+      "selectedDates": [
+        "2025-08-13T07:14:45.229Z",
+        "2025-08-14T07:14:45.229Z",
+        "2025-08-15T07:14:45.229Z"
+      ],
+      "savedAt": "2025-08-13T07:15:00.226Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755069300211-459635539-image 1.png",
+      "submittedAt": "2025-08-13T07:15:07.692Z",
+      "reviewedAt": "2025-08-13T07:16:28.926Z"
+    },
+    {
+      "id": 1755071024828,
+      "userId": "7",
+      "employeeId": "9876",
+      "userDesignation": "Jr. Developer",
+      "userLocation": "Coimbatore",
+      "selectedDates": [
+        "2025-08-13T07:43:33.262Z",
+        "2025-08-14T07:43:33.262Z"
+      ],
+      "savedAt": "2025-08-13T07:43:44.828Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755071024822-528344545-image 1.png",
+      "submittedAt": "2025-08-13T07:43:51.143Z",
+      "reviewedAt": "2025-08-13T07:44:08.372Z"
+    },
+    {
+      "id": 1755071193685,
+      "userId": "8",
+      "employeeId": "6789",
+      "userDesignation": "Jr. Developer",
+      "userLocation": "Coimbatore",
+      "selectedDates": [
+        "2025-08-13T07:46:16.974Z",
+        "2025-08-14T07:46:16.974Z",
+        "2025-08-15T07:46:16.974Z"
+      ],
+      "savedAt": "2025-08-13T07:46:33.685Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755071193679-452515877-image 1.png",
+      "submittedAt": "2025-08-13T07:46:38.947Z",
+      "reviewedAt": "2025-08-13T07:46:55.834Z"
+    }
+  ]
+}

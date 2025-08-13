@@ -1,0 +1,898 @@
+<div class="admin-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="dashboard-title">
+            <i class="fas fa-tachometer me-2"></i>Workday Wizard
+          </h1>
+          <p class="welcome-text" *ngIf="currentAdmin">
+            Welcome back, {{ currentAdmin.name }}!
+          </p>
+        </div>
+        <div class="col-md-4 text-end">
+          <button class="btn btn-outline-danger" (click)="logout()">
+            <i class="fas fa-sign-out-alt me-2"></i>Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-fluid mt-4">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon users">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stats-content">
+            <h3>{{ totalUsers }}</h3>
+            <p>Total Users</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon admins">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div class="stats-content">
+            <h3>{{ totalAdmins }}</h3>
+            <p>Total Admins</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon bookings">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stats-content">
+            <h3>{{ totalBookings }}</h3>
+            <p>Approved Bookings</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon active">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stats-content">
+            <h3>{{ totalSubmissions }}</h3>
+            <p>Pending Reviews</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="row">
+      <div class="col-12">
+        <nav class="nav nav-tabs dashboard-tabs">
+          <a class="nav-link" 
+             [class.active]="activeTab === 'overview'" 
+             (click)="setActiveTab('overview'); $event.preventDefault()">
+            <i class="fas fa-chart-pie me-2"></i>Overview
+          </a>
+          <a class="nav-link" 
+             [class.active]="activeTab === 'users'" 
+             (click)="setActiveTab('users'); $event.preventDefault()">
+            <i class="fas fa-users me-2"></i>User Management
+          </a>
+          <a class="nav-link" 
+             [class.active]="activeTab === 'submissions'" 
+             (click)="setActiveTab('submissions'); $event.preventDefault()">
+            <i class="fas fa-paper-plane me-2"></i>Review Submissions
+          </a>
+          <a class="nav-link" 
+             [class.active]="activeTab === 'pending'" 
+             (click)="setActiveTab('pending'); $event.preventDefault()">
+            <i class="fas fa-clock me-2"></i>Pending Submissions
+          </a>
+          <a class="nav-link" 
+             [class.active]="activeTab === 'bookings'" 
+             (click)="setActiveTab('bookings'); $event.preventDefault()">
+            <i class="fas fa-calendar-alt me-2"></i>Approved Bookings
+          </a>
+          <a class="nav-link" 
+             [class.active]="activeTab === 'settings'" 
+             (click)="setActiveTab('settings'); $event.preventDefault()">
+            <i class="fas fa-cog me-2"></i>Settings
+          </a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="row mt-4">
+      <div class="col-12">
+        
+        <!-- Overview Tab -->
+        <div *ngIf="activeTab === 'overview'" class="tab-content">
+          <div class="card">
+            <div class="card-header">
+              <h5><i class="fas fa-chart-line me-2"></i>System Overview</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Recent Activity</h6>
+                  <div class="recent-activity">
+                    <div class="activity-item" *ngFor="let booking of approvedSelections.slice(0, 5)">
+                      <i class="fas fa-check-circle text-success"></i>
+                      <span>Booking approved for {{ booking.employeeId }} on {{ formatDate(booking.reviewedAt) }}</span>
+                    </div>
+                    <div *ngIf="approvedSelections.length === 0" class="text-muted">
+                      No recent approved bookings
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6>Admin Permissions</h6>
+                  <div class="permissions-list" *ngIf="currentAdmin && currentAdmin.permissions">
+                    <span class="badge badge-permission me-1 mb-1" 
+                          *ngFor="let permission of currentAdmin.permissions">
+                      {{ permission.replace('_', ' ') | titlecase }}
+                    </span>
+                  </div>
+                  <div *ngIf="!currentAdmin?.permissions" class="text-muted">
+                    Standard admin permissions
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Management Tab -->
+        <div *ngIf="activeTab === 'users'" class="tab-content">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5><i class="fas fa-users me-2"></i>User Management</h5>
+              <div>
+                <button class="btn btn-success btn-sm me-2" (click)="exportUsers()" title="Export Users to Excel">
+                  <i class="fas fa-file-excel me-1"></i>Export
+                </button>
+                <button class="btn btn-primary btn-sm" (click)="showAddUserForm()">
+                  <i class="fas fa-plus me-2"></i>Add New User
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              
+              <!-- Regular Users -->
+              <h6 class="mb-3">Regular Users ({{ users.length }})</h6>
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Employee ID</th>
+                      <th>Designation</th>
+                      <th>Location</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let user of users">
+                      <td>{{ user.id }}</td>
+                      <td>{{ user.name }}</td>
+                      <td>{{ user.employeeId }}</td>
+                      <td>{{ user.designation }}</td>
+                      <td>{{ user.location }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-info me-1" 
+                                (click)="viewUserBookings(user.id)"
+                                title="View Bookings">
+                          <i class="fas fa-calendar-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning me-1" 
+                                (click)="editUser(user)"
+                                title="Edit User">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" 
+                                (click)="deleteUser(user.id)"
+                                title="Delete User">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Admin Users -->
+              <h6 class="mb-3 mt-4">Admin Users ({{ admins.length }})</h6>
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Employee ID</th>
+                      <th>Designation</th>
+                      <th>Location</th>
+                      <th>Role</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let admin of admins">
+                      <td>{{ admin.id }}</td>
+                      <td>{{ admin.name }}</td>
+                      <td>{{ admin.employeeId }}</td>
+                      <td>{{ admin.designation }}</td>
+                      <td>{{ admin.location }}</td>
+                      <td><span class="badge bg-danger">{{ admin.role || 'admin' }}</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-warning me-1" 
+                                (click)="editUser(admin)"
+                                title="Edit Admin">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" 
+                                (click)="deleteUser(admin.id)"
+                                title="Delete Admin"
+                                *ngIf="admin.id !== currentAdmin?.id">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Submissions Tab -->
+        <div *ngIf="activeTab === 'submissions'" class="tab-content">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5><i class="fas fa-paper-plane me-2"></i>Review User Submissions</h5>
+              <button class="btn btn-success btn-sm" (click)="exportSubmissions()" title="Export Submissions to Excel">
+                <i class="fas fa-file-excel me-1"></i>Export Submissions
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Designation</th>
+                      <th>Location</th>
+                      <th>Dates Count</th>
+                      <th>Attachment</th>
+                      <th>Submitted</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let submission of submittedSelections">
+                      <td>{{ submission.employeeId }}</td>
+                      <td>
+                        {{ getUserName(submission.userId) }}
+                      </td>
+                      <td>{{ submission.userDesignation }}</td>
+                      <td>{{ submission.userLocation }}</td>
+                      <td>{{ submission.selectedDates.length }}</td>
+                      <td class="text-center">
+                        <span *ngIf="submission.attachment" class="text-success" title="Has attachment">
+                          <i class="fas fa-paperclip"></i>
+                        </span>
+                        <span *ngIf="!submission.attachment" class="text-muted" title="No attachment">
+                          <i class="fas fa-minus"></i>
+                        </span>
+                      </td>
+                      <td>{{ formatDateTime(submission.submittedAt!) }}</td>
+                      <td>
+                        <span class="badge" 
+                              [ngClass]="{
+                                'bg-warning': submission.status === 'pending',
+                                'bg-success': submission.status === 'approved',
+                                'bg-danger': submission.status === 'rejected'
+                              }">
+                          {{ submission.status | titlecase }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="btn-group" *ngIf="submission.status === 'pending'">
+                          <button class="btn btn-sm btn-success" 
+                                  (click)="approveSubmission(submission)"
+                                  title="Approve">
+                            <i class="fas fa-check"></i>
+                          </button>
+                          <button class="btn btn-sm btn-danger" 
+                                  (click)="rejectSubmission(submission)"
+                                  title="Reject">
+                            <i class="fas fa-times"></i>
+                          </button>
+                          <button class="btn btn-sm btn-info" 
+                                  (click)="viewSubmissionDetails(submission)"
+                                  title="View Details">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        </div>
+                        <button class="btn btn-sm btn-info" 
+                                (click)="viewSubmissionDetails(submission)"
+                                title="View Details"
+                                *ngIf="submission.status !== 'pending'">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div *ngIf="submittedSelections.length === 0" class="text-center text-muted py-4">
+                  No submissions found
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Submissions Tab -->
+        <div *ngIf="activeTab === 'pending'" class="tab-content">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <h5><i class="fas fa-clock me-2"></i>Users Who Haven't Submitted Roster Dates</h5>
+                <div *ngIf="usersNotSubmitted" class="mt-2">
+                  <small class="text-muted">
+                    For {{ usersNotSubmitted.month }}/{{ usersNotSubmitted.year }} - 
+                    {{ usersNotSubmitted.notSubmittedCount }} of {{ usersNotSubmitted.totalUsers }} users pending
+                  </small>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" 
+                      (click)="refreshDashboardData()"
+                      title="Refresh Data">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+            <div class="card-body">
+              <div *ngIf="usersNotSubmitted && usersNotSubmitted.usersNotSubmitted.length > 0" class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Designation</th>
+                      <th>Location</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let user of usersNotSubmitted.usersNotSubmitted">
+                      <td>{{ user.employeeId }}</td>
+                      <td>{{ user.name }}</td>
+                      <td>{{ user.designation }}</td>
+                      <td>{{ user.location }}</td>
+                      <td>
+                        <span class="badge bg-warning text-dark">
+                          <i class="fas fa-clock me-1"></i>Not Submitted
+                        </span>
+                      </td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-sm btn-primary" 
+                                  (click)="remindUser(user)"
+                                  title="Send Reminder">
+                            <i class="fas fa-bell"></i> Remind
+                          </button>
+                          <button class="btn btn-sm btn-info" 
+                                  (click)="viewUserDetails(user)"
+                                  title="View User Details">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div *ngIf="usersNotSubmitted && usersNotSubmitted.usersNotSubmitted.length === 0" 
+                   class="text-center text-success py-4">
+                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                <h4>All Users Have Submitted!</h4>
+                <p class="text-muted">All users have submitted their roster dates for this month.</p>
+              </div>
+              <div *ngIf="!usersNotSubmitted" class="text-center py-4">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p class="mt-2">Loading pending submissions...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approved Bookings Tab -->
+        <div *ngIf="activeTab === 'bookings'" class="tab-content">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5><i class="fas fa-calendar-alt me-2"></i>Approved Bookings Management</h5>
+              <button class="btn btn-success btn-sm" (click)="exportBookings()" title="Export Bookings to Excel">
+                <i class="fas fa-file-excel me-1"></i>Export Bookings
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Booking ID</th>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Designation</th>
+                      <th>Location</th>
+                      <th>Dates Count</th>
+                      <th>Month/Year</th>
+                      <th>Status</th>
+                      <th>Approved On</th>
+                      <th>Admin Comment</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let booking of approvedSelections">
+                      <td>{{ booking.id }}</td>
+                      <td>{{ booking.employeeId }}</td>
+                      <td>{{ getUserName(+booking.userId) }}</td>
+                      <td>{{ booking.userDesignation }}</td>
+                      <td>{{ booking.userLocation }}</td>
+                      <td>{{ booking.selectedDates.length }}</td>
+                      <td>{{ booking.month }}/{{ booking.year }}</td>
+                      <td>
+                        <span class="badge bg-success">{{ booking.status | titlecase }}</span>
+                      </td>
+                      <td>{{ formatDateTime(booking.reviewedAt) }}</td>
+                      <td>{{ booking.adminComment || 'N/A' }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-info me-1" 
+                                title="View Details"
+                                (click)="viewBookingDetails(booking)">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning me-1" 
+                                title="Revoke Approval"
+                                (click)="revokeApproval(booking)">
+                          <i class="fas fa-undo"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div *ngIf="approvedSelections.length === 0" class="text-center text-muted py-4">
+                  <i class="fas fa-calendar-times fa-3x mb-3 text-muted"></i>
+                  <h6>No approved bookings found</h6>
+                  <p>Users' submitted roster selections will appear here once approved.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div *ngIf="activeTab === 'settings'" class="tab-content">
+          <div class="card">
+            <div class="card-header">
+              <h5><i class="fas fa-cog me-2"></i>System Settings</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Admin Profile</h6>
+                  <div class="admin-profile" *ngIf="currentAdmin">
+                    <p><strong>Name:</strong> {{ currentAdmin.name }}</p>
+                    <p><strong>Employee ID:</strong> {{ currentAdmin.employeeId }}</p>
+                    <p><strong>Designation:</strong> {{ currentAdmin.designation }}</p>
+                    <p><strong>Location:</strong> {{ currentAdmin.location }}</p>
+                    <p><strong>Role:</strong> {{ currentAdmin.role || 'admin' }}</p>
+                  </div>
+                  <button class="btn btn-primary">Update Profile</button>
+                </div>
+                <div class="col-md-6">
+                  <h6>System Actions</h6>
+                  <div class="d-grid gap-2">
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-excel me-2"></i>Export Data
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" (click)="exportAllData()">
+                          <i class="fas fa-download me-2"></i>Export All Data
+                        </a></li>
+                        <li><a class="dropdown-item" (click)="exportUsers()">
+                          <i class="fas fa-users me-2"></i>Export Users
+                        </a></li>
+                        <li><a class="dropdown-item" (click)="exportBookings()">
+                          <i class="fas fa-calendar-check me-2"></i>Export Approved Bookings
+                        </a></li>
+                        <li><a class="dropdown-item" (click)="exportSubmissions()">
+                          <i class="fas fa-clock me-2"></i>Export Pending Submissions
+                        </a></li>
+                      </ul>
+                    </div>
+                    <button class="btn btn-outline-secondary">
+                      <i class="fas fa-upload me-2"></i>Import Data
+                    </button>
+                    <button class="btn btn-outline-info" (click)="refreshDashboardData()">
+                      <i class="fas fa-sync me-2"></i>Refresh Dashboard
+                    </button>
+                    <button class="btn btn-outline-warning">
+                      <i class="fas fa-database me-2"></i>Backup System
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User Bookings Modal -->
+<div class="modal fade show" *ngIf="showUserBookingsModal" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-alt me-2"></i>Approved Bookings for {{ selectedUserName }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeUserBookingsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="selectedUserBookings.length === 0" class="text-center text-muted py-4">
+          <i class="fas fa-calendar-times fa-3x mb-3"></i>
+          <h6>No approved bookings found</h6>
+          <p>This user has no approved roster bookings yet.</p>
+        </div>
+        
+        <div *ngFor="let booking of selectedUserBookings; let i = index" class="booking-card mb-3">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-calendar-check me-2 text-success"></i>
+                Booking #{{ booking.id }}
+              </h6>
+              <span class="badge bg-success">{{ booking.status | titlecase }}</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Booking Information</h6>
+                  <p><strong>Month/Year:</strong> {{ booking.month }}/{{ booking.year }}</p>
+                  <p><strong>Employee ID:</strong> {{ booking.employeeId }}</p>
+                  <p><strong>Designation:</strong> {{ booking.userDesignation }}</p>
+                  <p><strong>Location:</strong> {{ booking.userLocation }}</p>
+                  <p><strong>Total Dates:</strong> {{ booking.selectedDates.length }}</p>
+                  <p><strong>Approved On:</strong> {{ formatDateTime(booking.reviewedAt) }}</p>
+                  <p><strong>Admin Comment:</strong> {{ booking.adminComment || 'None' }}</p>
+                </div>
+                <div class="col-md-6">
+                  <h6>Roster Dates</h6>
+                  <div class="roster-dates" style="max-height: 200px; overflow-y: auto;">
+                    <div *ngFor="let dateStr of booking.selectedDates" class="date-item mb-1">
+                      <span class="badge bg-primary me-1">
+                        <i class="fas fa-calendar-day me-1"></i>
+                        {{ formatDate(dateStr) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeUserBookingsModal()">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade show" *ngIf="showAddUserModal" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-plus me-2"></i>Add New User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeAddUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #addUserForm="ngForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserName" class="form-label">Full Name *</label>
+                <input type="text" class="form-control" id="newUserName" 
+                       [(ngModel)]="newUser.name" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserEmployeeId" class="form-label">Employee ID *</label>
+                <input type="text" class="form-control" id="newUserEmployeeId" 
+                       [(ngModel)]="newUser.employeeId" name="employeeId" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserPassword" class="form-label">Password *</label>
+                <input type="password" class="form-control" id="newUserPassword" 
+                       [(ngModel)]="newUser.password" name="password" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserRole" class="form-label">Role *</label>
+                <select class="form-select" id="newUserRole" 
+                        [(ngModel)]="newUser.role" name="role" required>
+                  <option value="user">Regular User</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserDesignation" class="form-label">Designation *</label>
+                <input type="text" class="form-control" id="newUserDesignation" 
+                       [(ngModel)]="newUser.designation" name="designation" required
+                       placeholder="e.g., Programmer Analyst">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserLocation" class="form-label">Location *</label>
+                <input type="text" class="form-control" id="newUserLocation" 
+                       [(ngModel)]="newUser.location" name="location" required
+                       placeholder="e.g., New York">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAddUserModal()">
+          <i class="fas fa-times me-2"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="addUser()">
+          <i class="fas fa-plus me-2"></i>Create User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade show" *ngIf="showEditUserModal && editingUser" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-edit me-2"></i>Edit User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #editUserForm="ngForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserName" class="form-label">Full Name *</label>
+                <input type="text" class="form-control" id="editUserName" 
+                       [(ngModel)]="editingUser.name" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserEmployeeId" class="form-label">Employee ID *</label>
+                <input type="text" class="form-control" id="editUserEmployeeId" 
+                       [(ngModel)]="editingUser.employeeId" name="employeeId" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserRole" class="form-label">Role *</label>
+                <select class="form-select" id="editUserRole" 
+                        [(ngModel)]="editingUser.role" name="role" required>
+                  <option value="user">Regular User</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserDesignation" class="form-label">Designation *</label>
+                <input type="text" class="form-control" id="editUserDesignation" 
+                       [(ngModel)]="editingUser.designation" name="designation" required>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="editUserLocation" class="form-label">Location *</label>
+            <input type="text" class="form-control" id="editUserLocation" 
+                   [(ngModel)]="editingUser.location" name="location" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeEditUserModal()">
+          <i class="fas fa-times me-2"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="saveUserEdits()">
+          <i class="fas fa-save me-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submission Details Modal -->
+<div class="modal fade show" *ngIf="showSubmissionDetailsModal && selectedSubmission" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-file-alt me-2"></i>Submission Details - {{ getUserName(selectedSubmission.userId) }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeSubmissionDetailsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-primary">Employee Information</h6>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <td><strong>Employee ID:</strong></td>
+                <td>{{ selectedSubmission.employeeId }}</td>
+              </tr>
+              <tr>
+                <td><strong>Name:</strong></td>
+                <td>{{ getUserName(selectedSubmission.userId) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Designation:</strong></td>
+                <td>{{ selectedSubmission.userDesignation }}</td>
+              </tr>
+              <tr>
+                <td><strong>Location:</strong></td>
+                <td>{{ selectedSubmission.userLocation }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-primary">Submission Information</h6>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>
+                  <span class="badge" 
+                        [ngClass]="{
+                          'bg-warning': selectedSubmission.status === 'pending',
+                          'bg-success': selectedSubmission.status === 'approved',
+                          'bg-danger': selectedSubmission.status === 'rejected'
+                        }">
+                    {{ selectedSubmission.status | titlecase }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Month/Year:</strong></td>
+                <td>{{ selectedSubmission.month }}/{{ selectedSubmission.year }}</td>
+              </tr>
+              <tr>
+                <td><strong>Submitted Date:</strong></td>
+                <td>{{ formatDateTime(selectedSubmission.submittedAt!) }}</td>
+              </tr>
+              <tr *ngIf="selectedSubmission.reviewedAt">
+                <td><strong>Reviewed Date:</strong></td>
+                <td>{{ formatDateTime(selectedSubmission.reviewedAt) }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+          <div class="col-12">
+            <h6 class="text-primary">Selected Roster Dates ({{ selectedSubmission.selectedDates.length }} dates)</h6>
+            <div class="row">
+              <div class="col-md-6" *ngFor="let date of selectedSubmission.selectedDates; let i = index">
+                <div class="badge bg-secondary me-2 mb-2">
+                  {{ formatDate(date) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr *ngIf="selectedSubmission.attachment">
+
+        <div class="row" *ngIf="selectedSubmission.attachment">
+          <div class="col-12">
+            <h6 class="text-primary">Attachment</h6>
+            <div class="card">
+              <div class="card-body text-center">
+                <div class="mb-3">
+                  <i class="fas fa-file-image fa-3x text-info"></i>
+                </div>
+                <p class="card-text">
+                  <strong>File:</strong> {{ selectedSubmission.attachment }}
+                </p>
+                <div class="btn-group">
+                  <button class="btn btn-primary btn-sm" 
+                          (click)="downloadAttachment(selectedSubmission.attachment!)"
+                          title="Download Attachment">
+                    <i class="fas fa-download me-1"></i>Download
+                  </button>
+                  <button class="btn btn-info btn-sm" 
+                          (click)="downloadAttachment(selectedSubmission.attachment!)"
+                          title="View Attachment">
+                    <i class="fas fa-external-link-alt me-1"></i>View
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" *ngIf="!selectedSubmission.attachment">
+          <div class="col-12">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>No attachment was provided with this submission.
+            </div>
+          </div>
+        </div>
+
+        <hr *ngIf="selectedSubmission.adminComment">
+
+        <div class="row" *ngIf="selectedSubmission.adminComment">
+          <div class="col-12">
+            <h6 class="text-primary">Admin Comment</h6>
+            <div class="alert alert-secondary">
+              <i class="fas fa-comment me-2"></i>{{ selectedSubmission.adminComment }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="btn-group" *ngIf="selectedSubmission.status === 'pending'">
+          <button type="button" class="btn btn-success" (click)="approveSubmission(selectedSubmission)">
+            <i class="fas fa-check me-2"></i>Approve
+          </button>
+          <button type="button" class="btn btn-danger" (click)="rejectSubmission(selectedSubmission)">
+            <i class="fas fa-times me-2"></i>Reject
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="closeSubmissionDetailsModal()">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

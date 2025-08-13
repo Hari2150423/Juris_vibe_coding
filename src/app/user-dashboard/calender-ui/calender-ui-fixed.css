@@ -1,0 +1,481 @@
+@import 'https://fonts.googleapis.com/css?family=Lato:300,300i,900,900i';
+
+/* CSS VARIABLES */
+:root {
+  --col-black: rgba(0, 0, 0, 0.9);
+  --col-white: #ffffff;
+  --col-grey: rgba(0, 0, 0, 0.1);
+  --col-lightgrey: #F5F5F5;
+  --col-blu: #00407b;
+  --col-red: #F57170;
+  --col-green: #10DDC2;
+  --col-yellow: #FACC2E;
+
+  --sz-small: 13px;
+  --sz-medium: 16px;
+  --sz-large: 28px;
+
+  --mr-small: 20px;
+  --mr-medium: 30px;
+  --mr-large: 50px;
+
+  --headerH: 80px;
+  --asideW: 300px;
+
+  --letter-spacing: 2px;
+  --border-radius: 6px;
+}
+
+/* Base Styles */
+body { 
+  position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body.overlay::before {
+  position: fixed;
+  content: '';
+  display: block;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+html {
+  height: 100%;
+  background: #003566;
+  color: var(--col-white);
+  font-size: var(--sz-small);
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
+}
+
+.wrapper {
+  position: relative;
+  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Utility Classes */
+.u-border-box {
+  box-sizing: border-box;
+}
+
+.u-transition {
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.u-transition.long {
+  transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.u-transition.elastic {
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.320, 1.275);
+}
+
+/* Text Styles */
+.txt__normal { 
+  font-family: 'Lato', sans-serif; 
+  font-weight: 400; 
+}
+
+.txt__bold { 
+  font-family: 'Lato', sans-serif; 
+  font-weight: 900; 
+}
+
+/* Header */
+header {
+  position: fixed;
+  height: var(--headerH); 
+  width: 100%;
+  z-index: 50;
+  background: #003566;
+}
+
+header > .wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--mr-small);
+  box-sizing: border-box;
+  color: var(--col-white);
+  letter-spacing: var(--letter-spacing);
+  font-size: var(--sz-small);
+}
+
+header a {
+  color: var(--col-white);
+  text-decoration: none;
+  margin-left: 10px;
+}
+
+/* Month/Year Navigation */
+.c-monthyear {
+  display: flex;
+}
+
+.c-month {
+  position: relative;
+  height: var(--headerH); 
+  line-height: var(--headerH);
+}
+
+#c-paginator {
+  position: relative;
+  width: 200px;
+  display: block;
+  height: var(--headerH);
+  line-height: var(--headerH);
+  text-align: center;
+  overflow: hidden;
+}
+
+.c-paginator__month {
+  position: absolute;
+  width: 200px;
+  top: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.c-month .prev, 
+.c-month .next {
+  position: absolute;
+  display: block;
+  top: 50%;
+  width: var(--mr-medium);
+  height: var(--mr-medium);
+  padding: 9px 12px;
+  background-color: #004d7a;
+  cursor: pointer;
+  z-index: 10;
+  box-sizing: border-box;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.c-month .prev {
+  left: 0;
+}
+
+.c-month .prev:hover {
+  padding: 9px 10px;
+  background-color: #0066a3;
+}
+
+.c-month .next {
+  right: 0;
+}
+
+.c-month .next:hover {
+  padding: 9px 14px; 
+  background-color: #0066a3;
+}
+
+.c-paginator__year {
+  height: var(--headerH); 
+  line-height: var(--headerH);
+  padding: 0 var(--mr-small);
+}
+
+/* Buttons */
+.o-btn {
+  display: inline-block;
+  padding: 0 10px;
+  line-height: var(--mr-medium);
+  height: var(--mr-medium);
+  background-color: #004d7a;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing);
+  border-radius: 15px;
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border: none;
+  color: var(--col-white);
+  cursor: pointer;
+}
+
+.o-btn span {
+  margin-left: 10px;
+}
+
+.o-btn:hover {
+  background-color: #0066a3;
+}
+
+/* Calendar Layout */
+.c-calendar {
+  padding-top: var(--headerH);
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+}
+
+.c-calendar__style {
+  background-color: var(--col-blu);
+  margin: var(--mr-small);
+  padding: 10px;
+  box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.18);
+  border-radius: var(--border-radius);
+}
+
+.c-cal__container {
+  position: relative;
+  width: calc(100% - var(--asideW));
+  height: 0;
+  padding-bottom: 65%;
+  overflow: hidden;
+}
+
+.c-main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.c-cal__row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Calendar Columns */
+.c-cal__col {
+  width: calc(100% / 7);
+  text-align: center;
+  height: var(--mr-large);
+  line-height: var(--mr-large);
+  letter-spacing: var(--letter-spacing);
+  text-transform: uppercase;
+}
+
+/* Calendar Cells */
+.c-cal__cel {
+  position: relative;
+  width: calc(100% / 7);
+  text-align: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.c-cal__cel p {
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  line-height: 26px;
+  background: #003f6b;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.c-cal__cel::before {
+  content: "";
+  display: block;
+  padding-top: 100%;
+}
+
+/* Weekend styling */
+.c-cal__cel:nth-child(1) p {
+  background: rgba(181, 44, 44, 0.2);
+}
+
+.c-cal__cel:nth-child(7) p {
+  background: #002d52;
+}
+
+.c-cal__cel:hover {
+  background-color: #004d7a !important;
+}
+
+.c-cal__cel:hover p {
+  background: #002d52 !important;
+}
+
+.c-cal__cel.isSelected {
+  background-color: #004d7a;
+}
+
+.c-cal__cel.isSelected p {
+  background: #002d52;
+}
+
+.c-cal__cel.isToday {
+  background-color: rgba(245, 113, 112, 0.2);
+}
+
+.c-cal__cel.isToday p {
+  background: rgba(245, 113, 112, 0.4);
+}
+
+.c-cal__cel.other_month {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Event Indicators */
+.event::before {
+  position: absolute;
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  background-color: var(--col-lightgrey);
+  z-index: 10;
+  padding: 0;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, calc(50% + 10px));
+}
+
+.event--birthday::before {
+  background-color: var(--col-yellow);
+}
+
+.event--festivity::before {
+  background-color: var(--col-green);
+}
+
+.event--important::before {
+  background-color: var(--col-red);
+}
+
+/* Aside Panel */
+.c-aside {
+  width: var(--asideW);
+  padding: var(--mr-small);
+}
+
+.c-aside__day {
+  font-size: var(--sz-large);
+  margin: var(--mr-large) 0;
+}
+
+.c-aside__num {
+  font-family: 'Lato', sans-serif;
+  font-weight: 900;
+}
+
+.c-aside__event {
+  position: relative;
+  padding-left: var(--mr-small);
+  margin: var(--mr-small) 0;
+}
+
+.c-aside__event::before {
+  position: absolute;
+  display: block;
+  content: '';
+  width: 16px;
+  height: 16px;
+  left: 0;
+  background-color: var(--col-lightgrey);
+  border-radius: 50%;
+}
+
+.c-aside__event--birthday::before {
+  background-color: var(--col-yellow);
+}
+
+.c-aside__event--festivity::before {
+  background-color: var(--col-green);
+}
+
+.c-aside__event--important::before {
+  background-color: var(--col-red);
+}
+
+/* Event Creator */
+.c-event__creator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  max-width: 500px;
+  max-height: 470px;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  padding: var(--mr-small);
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  box-sizing: border-box;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: var(--col-blu);
+  border-radius: var(--border-radius);
+}
+
+.c-event__creator form { 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.c-event__creator.isVisible {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Form Elements */
+input, textarea, select {
+  appearance: none;
+  border-radius: 0;
+  padding: 0;
+  border-width: 0;
+  resize: none;
+  margin: 10px 0;
+  padding: 10px;
+  width: 100%;
+  border-radius: 20px;
+  box-sizing: border-box;
+  background: var(--col-white);
+  color: var(--col-black);
+}
+
+input {
+  height: 40px;
+}
+
+input::-ms-expand {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .c-calendar {
+    flex-direction: column;
+  }
+  
+  .c-cal__container {
+    width: 100%;
+    padding-bottom: 100%;
+  }
+  
+  .c-aside {
+    width: 100%;
+  }
+}
