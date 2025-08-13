@@ -320,7 +320,10 @@ export class CalenderUI implements OnInit, OnChanges {
           } else if (this.editMode) {
             this.editCompleted.emit();
           } else {
-            this.draftSaved.emit();
+            // Add a small delay to ensure the parent component refreshes properly
+            setTimeout(() => {
+              this.draftSaved.emit();
+            }, 500);
           }
           this.isSaving = false; // Reset saving state
         },

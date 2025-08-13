@@ -51,8 +51,8 @@
             <i class="fas fa-calendar-check"></i>
           </div>
           <div class="stats-content">
-            <h3>{{ totalSubmissions }}</h3>
-            <p>Pending Reviews</p>
+            <h3>{{ totalBookings }}</h3>
+            <p>Approved Bookings</p>
           </div>
         </div>
       </div>
@@ -62,8 +62,8 @@
             <i class="fas fa-clock"></i>
           </div>
           <div class="stats-content">
-            <h3>{{ usersNotSubmitted?.notSubmittedCount || 0 }}</h3>
-            <p>Pending Submissions</p>
+            <h3>{{ totalSubmissions }}</h3>
+            <p>Pending Reviews</p>
           </div>
         </div>
       </div>
@@ -122,12 +122,12 @@
                 <div class="col-md-6">
                   <h6>Recent Activity</h6>
                   <div class="recent-activity">
-                    <div class="activity-item" *ngFor="let booking of selectedDatesData.slice(0, 5)">
-                      <i class="fas fa-calendar-plus text-success"></i>
-                      <span>Booking created by {{ booking.employeeId }} on {{ formatDate(booking.savedAt) }}</span>
+                    <div class="activity-item" *ngFor="let booking of approvedSelections.slice(0, 5)">
+                      <i class="fas fa-check-circle text-success"></i>
+                      <span>Booking approved for {{ booking.employeeId }} on {{ formatDate(booking.reviewedAt) }}</span>
                     </div>
-                    <div *ngIf="selectedDatesData.length === 0" class="text-muted">
-                      No recent activity
+                    <div *ngIf="approvedSelections.length === 0" class="text-muted">
+                      No recent approved bookings
                     </div>
                   </div>
                 </div>
@@ -153,9 +153,14 @@
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5><i class="fas fa-users me-2"></i>User Management</h5>
-              <button class="btn btn-primary btn-sm">
-                <i class="fas fa-plus me-2"></i>Add New User
-              </button>
+              <div>
+                <button class="btn btn-success btn-sm me-2" (click)="exportUsers()" title="Export Users to Excel">
+                  <i class="fas fa-file-excel me-1"></i>Export
+                </button>
+                <button class="btn btn-primary btn-sm" (click)="showAddUserForm()">
+                  <i class="fas fa-plus me-2"></i>Add New User
+                </button>
+              </div>
             </div>
             <div class="card-body">
               
@@ -187,6 +192,7 @@
                           <i class="fas fa-calendar-alt"></i>
                         </button>
                         <button class="btn btn-sm btn-warning me-1" 
+                                (click)="editUser(user)"
                                 title="Edit User">
                           <i class="fas fa-edit"></i>
                         </button>
@@ -226,8 +232,15 @@
                       <td><span class="badge bg-danger">{{ admin.role || 'admin' }}</span></td>
                       <td>
                         <button class="btn btn-sm btn-warning me-1" 
+                                (click)="editUser(admin)"
                                 title="Edit Admin">
                           <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" 
+                                (click)="deleteUser(admin.id)"
+                                title="Delete Admin"
+                                *ngIf="admin.id !== currentAdmin?.id">
+                          <i class="fas fa-trash"></i>
                         </button>
                       </td>
                     </tr>
@@ -241,8 +254,11 @@
         <!-- Review Submissions Tab -->
         <div *ngIf="activeTab === 'submissions'" class="tab-content">
           <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
               <h5><i class="fas fa-paper-plane me-2"></i>Review User Submissions</h5>
+              <button class="btn btn-success btn-sm" (click)="exportSubmissions()" title="Export Submissions to Excel">
+                <i class="fas fa-file-excel me-1"></i>Export Submissions
+              </button>
             </div>
             <div class="card-body">
               <div class="table-responsive">
@@ -254,6 +270,7 @@
                       <th>Designation</th>
                       <th>Location</th>
                       <th>Dates Count</th>
+                      <th>Attachment</th>
                       <th>Submitted</th>
                       <th>Status</th>
                       <th>Actions</th>
@@ -268,6 +285,14 @@
                       <td>{{ submission.userDesignation }}</td>
                       <td>{{ submission.userLocation }}</td>
                       <td>{{ submission.selectedDates.length }}</td>
+                      <td class="text-center">
+                        <span *ngIf="submission.attachment" class="text-success" title="Has attachment">
+                          <i class="fas fa-paperclip"></i>
+                        </span>
+                        <span *ngIf="!submission.attachment" class="text-muted" title="No attachment">
+                          <i class="fas fa-minus"></i>
+                        </span>
+                      </td>
                       <td>{{ formatDateTime(submission.submittedAt!) }}</td>
                       <td>
                         <span class="badge" 
@@ -291,8 +316,14 @@
                                   title="Reject">
                             <i class="fas fa-times"></i>
                           </button>
+                          <button class="btn btn-sm btn-info" 
+                                  (click)="viewSubmissionDetails(submission)"
+                                  title="View Details">
+                            <i class="fas fa-eye"></i>
+                          </button>
                         </div>
                         <button class="btn btn-sm btn-info" 
+                                (click)="viewSubmissionDetails(submission)"
                                 title="View Details"
                                 *ngIf="submission.status !== 'pending'">
                           <i class="fas fa-eye"></i>
@@ -387,8 +418,11 @@
         <!-- Approved Bookings Tab -->
         <div *ngIf="activeTab === 'bookings'" class="tab-content">
           <div class="card">
-            <div class="card-header">
-              <h5><i class="fas fa-calendar-alt me-2"></i>Booking Management</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5><i class="fas fa-calendar-alt me-2"></i>Approved Bookings Management</h5>
+              <button class="btn btn-success btn-sm" (click)="exportBookings()" title="Export Bookings to Excel">
+                <i class="fas fa-file-excel me-1"></i>Export Bookings
+              </button>
             </div>
             <div class="card-body">
               <div class="table-responsive">
@@ -397,43 +431,50 @@
                     <tr>
                       <th>Booking ID</th>
                       <th>Employee ID</th>
+                      <th>Name</th>
                       <th>Designation</th>
                       <th>Location</th>
                       <th>Dates Count</th>
                       <th>Month/Year</th>
-                      <th>Created</th>
+                      <th>Status</th>
+                      <th>Approved On</th>
+                      <th>Admin Comment</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let booking of selectedDatesData">
+                    <tr *ngFor="let booking of approvedSelections">
                       <td>{{ booking.id }}</td>
                       <td>{{ booking.employeeId }}</td>
+                      <td>{{ getUserName(+booking.userId) }}</td>
                       <td>{{ booking.userDesignation }}</td>
                       <td>{{ booking.userLocation }}</td>
                       <td>{{ booking.selectedDates.length }}</td>
                       <td>{{ booking.month }}/{{ booking.year }}</td>
-                      <td>{{ formatDateTime(booking.savedAt) }}</td>
+                      <td>
+                        <span class="badge bg-success">{{ booking.status | titlecase }}</span>
+                      </td>
+                      <td>{{ formatDateTime(booking.reviewedAt) }}</td>
+                      <td>{{ booking.adminComment || 'N/A' }}</td>
                       <td>
                         <button class="btn btn-sm btn-info me-1" 
-                                title="View Details">
+                                title="View Details"
+                                (click)="viewBookingDetails(booking)">
                           <i class="fas fa-eye"></i>
                         </button>
                         <button class="btn btn-sm btn-warning me-1" 
-                                title="Edit Booking">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" 
-                                (click)="deleteBooking(booking.id)"
-                                title="Delete Booking">
-                          <i class="fas fa-trash"></i>
+                                title="Revoke Approval"
+                                (click)="revokeApproval(booking)">
+                          <i class="fas fa-undo"></i>
                         </button>
                       </td>
                     </tr>
                   </tbody>
                 </table>
-                <div *ngIf="selectedDatesData.length === 0" class="text-center text-muted py-4">
-                  No bookings found
+                <div *ngIf="approvedSelections.length === 0" class="text-center text-muted py-4">
+                  <i class="fas fa-calendar-times fa-3x mb-3 text-muted"></i>
+                  <h6>No approved bookings found</h6>
+                  <p>Users' submitted roster selections will appear here once approved.</p>
                 </div>
               </div>
             </div>
@@ -462,10 +503,34 @@
                 <div class="col-md-6">
                   <h6>System Actions</h6>
                   <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary">Export Data</button>
-                    <button class="btn btn-outline-secondary">Import Data</button>
-                    <button class="btn btn-outline-info">Generate Reports</button>
-                    <button class="btn btn-outline-warning">Backup System</button>
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-excel me-2"></i>Export Data
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" (click)="exportAllData()">
+                          <i class="fas fa-download me-2"></i>Export All Data
+                        </a></li>
+                        <li><a class="dropdown-item" (click)="exportUsers()">
+                          <i class="fas fa-users me-2"></i>Export Users
+                        </a></li>
+                        <li><a class="dropdown-item" (click)="exportBookings()">
+                          <i class="fas fa-calendar-check me-2"></i>Export Approved Bookings
+                        </a></li>
+                        <li><a class="dropdown-item" (click)="exportSubmissions()">
+                          <i class="fas fa-clock me-2"></i>Export Pending Submissions
+                        </a></li>
+                      </ul>
+                    </div>
+                    <button class="btn btn-outline-secondary">
+                      <i class="fas fa-upload me-2"></i>Import Data
+                    </button>
+                    <button class="btn btn-outline-info" (click)="refreshDashboardData()">
+                      <i class="fas fa-sync me-2"></i>Refresh Dashboard
+                    </button>
+                    <button class="btn btn-outline-warning">
+                      <i class="fas fa-database me-2"></i>Backup System
+                    </button>
                   </div>
                 </div>
               </div>
@@ -473,6 +538,360 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User Bookings Modal -->
+<div class="modal fade show" *ngIf="showUserBookingsModal" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-alt me-2"></i>Approved Bookings for {{ selectedUserName }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeUserBookingsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="selectedUserBookings.length === 0" class="text-center text-muted py-4">
+          <i class="fas fa-calendar-times fa-3x mb-3"></i>
+          <h6>No approved bookings found</h6>
+          <p>This user has no approved roster bookings yet.</p>
+        </div>
+        
+        <div *ngFor="let booking of selectedUserBookings; let i = index" class="booking-card mb-3">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-calendar-check me-2 text-success"></i>
+                Booking #{{ booking.id }}
+              </h6>
+              <span class="badge bg-success">{{ booking.status | titlecase }}</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Booking Information</h6>
+                  <p><strong>Month/Year:</strong> {{ booking.month }}/{{ booking.year }}</p>
+                  <p><strong>Employee ID:</strong> {{ booking.employeeId }}</p>
+                  <p><strong>Designation:</strong> {{ booking.userDesignation }}</p>
+                  <p><strong>Location:</strong> {{ booking.userLocation }}</p>
+                  <p><strong>Total Dates:</strong> {{ booking.selectedDates.length }}</p>
+                  <p><strong>Approved On:</strong> {{ formatDateTime(booking.reviewedAt) }}</p>
+                  <p><strong>Admin Comment:</strong> {{ booking.adminComment || 'None' }}</p>
+                </div>
+                <div class="col-md-6">
+                  <h6>Roster Dates</h6>
+                  <div class="roster-dates" style="max-height: 200px; overflow-y: auto;">
+                    <div *ngFor="let dateStr of booking.selectedDates" class="date-item mb-1">
+                      <span class="badge bg-primary me-1">
+                        <i class="fas fa-calendar-day me-1"></i>
+                        {{ formatDate(dateStr) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeUserBookingsModal()">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade show" *ngIf="showAddUserModal" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-plus me-2"></i>Add New User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeAddUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #addUserForm="ngForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserName" class="form-label">Full Name *</label>
+                <input type="text" class="form-control" id="newUserName" 
+                       [(ngModel)]="newUser.name" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserEmployeeId" class="form-label">Employee ID *</label>
+                <input type="text" class="form-control" id="newUserEmployeeId" 
+                       [(ngModel)]="newUser.employeeId" name="employeeId" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserPassword" class="form-label">Password *</label>
+                <input type="password" class="form-control" id="newUserPassword" 
+                       [(ngModel)]="newUser.password" name="password" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserRole" class="form-label">Role *</label>
+                <select class="form-select" id="newUserRole" 
+                        [(ngModel)]="newUser.role" name="role" required>
+                  <option value="user">Regular User</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserDesignation" class="form-label">Designation *</label>
+                <input type="text" class="form-control" id="newUserDesignation" 
+                       [(ngModel)]="newUser.designation" name="designation" required
+                       placeholder="e.g., Programmer Analyst">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newUserLocation" class="form-label">Location *</label>
+                <input type="text" class="form-control" id="newUserLocation" 
+                       [(ngModel)]="newUser.location" name="location" required
+                       placeholder="e.g., New York">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAddUserModal()">
+          <i class="fas fa-times me-2"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="addUser()">
+          <i class="fas fa-plus me-2"></i>Create User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade show" *ngIf="showEditUserModal && editingUser" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-edit me-2"></i>Edit User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #editUserForm="ngForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserName" class="form-label">Full Name *</label>
+                <input type="text" class="form-control" id="editUserName" 
+                       [(ngModel)]="editingUser.name" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserEmployeeId" class="form-label">Employee ID *</label>
+                <input type="text" class="form-control" id="editUserEmployeeId" 
+                       [(ngModel)]="editingUser.employeeId" name="employeeId" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserRole" class="form-label">Role *</label>
+                <select class="form-select" id="editUserRole" 
+                        [(ngModel)]="editingUser.role" name="role" required>
+                  <option value="user">Regular User</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editUserDesignation" class="form-label">Designation *</label>
+                <input type="text" class="form-control" id="editUserDesignation" 
+                       [(ngModel)]="editingUser.designation" name="designation" required>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="editUserLocation" class="form-label">Location *</label>
+            <input type="text" class="form-control" id="editUserLocation" 
+                   [(ngModel)]="editingUser.location" name="location" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeEditUserModal()">
+          <i class="fas fa-times me-2"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="saveUserEdits()">
+          <i class="fas fa-save me-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submission Details Modal -->
+<div class="modal fade show" *ngIf="showSubmissionDetailsModal && selectedSubmission" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-file-alt me-2"></i>Submission Details - {{ getUserName(selectedSubmission.userId) }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeSubmissionDetailsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-primary">Employee Information</h6>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <td><strong>Employee ID:</strong></td>
+                <td>{{ selectedSubmission.employeeId }}</td>
+              </tr>
+              <tr>
+                <td><strong>Name:</strong></td>
+                <td>{{ getUserName(selectedSubmission.userId) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Designation:</strong></td>
+                <td>{{ selectedSubmission.userDesignation }}</td>
+              </tr>
+              <tr>
+                <td><strong>Location:</strong></td>
+                <td>{{ selectedSubmission.userLocation }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-primary">Submission Information</h6>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>
+                  <span class="badge" 
+                        [ngClass]="{
+                          'bg-warning': selectedSubmission.status === 'pending',
+                          'bg-success': selectedSubmission.status === 'approved',
+                          'bg-danger': selectedSubmission.status === 'rejected'
+                        }">
+                    {{ selectedSubmission.status | titlecase }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Month/Year:</strong></td>
+                <td>{{ selectedSubmission.month }}/{{ selectedSubmission.year }}</td>
+              </tr>
+              <tr>
+                <td><strong>Submitted Date:</strong></td>
+                <td>{{ formatDateTime(selectedSubmission.submittedAt!) }}</td>
+              </tr>
+              <tr *ngIf="selectedSubmission.reviewedAt">
+                <td><strong>Reviewed Date:</strong></td>
+                <td>{{ formatDateTime(selectedSubmission.reviewedAt) }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+          <div class="col-12">
+            <h6 class="text-primary">Selected Roster Dates ({{ selectedSubmission.selectedDates.length }} dates)</h6>
+            <div class="row">
+              <div class="col-md-6" *ngFor="let date of selectedSubmission.selectedDates; let i = index">
+                <div class="badge bg-secondary me-2 mb-2">
+                  {{ formatDate(date) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr *ngIf="selectedSubmission.attachment">
+
+        <div class="row" *ngIf="selectedSubmission.attachment">
+          <div class="col-12">
+            <h6 class="text-primary">Attachment</h6>
+            <div class="card">
+              <div class="card-body text-center">
+                <div class="mb-3">
+                  <i class="fas fa-file-image fa-3x text-info"></i>
+                </div>
+                <p class="card-text">
+                  <strong>File:</strong> {{ selectedSubmission.attachment }}
+                </p>
+                <div class="btn-group">
+                  <button class="btn btn-primary btn-sm" 
+                          (click)="downloadAttachment(selectedSubmission.attachment!)"
+                          title="Download Attachment">
+                    <i class="fas fa-download me-1"></i>Download
+                  </button>
+                  <button class="btn btn-info btn-sm" 
+                          (click)="downloadAttachment(selectedSubmission.attachment!)"
+                          title="View Attachment">
+                    <i class="fas fa-external-link-alt me-1"></i>View
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" *ngIf="!selectedSubmission.attachment">
+          <div class="col-12">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>No attachment was provided with this submission.
+            </div>
+          </div>
+        </div>
+
+        <hr *ngIf="selectedSubmission.adminComment">
+
+        <div class="row" *ngIf="selectedSubmission.adminComment">
+          <div class="col-12">
+            <h6 class="text-primary">Admin Comment</h6>
+            <div class="alert alert-secondary">
+              <i class="fas fa-comment me-2"></i>{{ selectedSubmission.adminComment }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="btn-group" *ngIf="selectedSubmission.status === 'pending'">
+          <button type="button" class="btn btn-success" (click)="approveSubmission(selectedSubmission)">
+            <i class="fas fa-check me-2"></i>Approve
+          </button>
+          <button type="button" class="btn btn-danger" (click)="rejectSubmission(selectedSubmission)">
+            <i class="fas fa-times me-2"></i>Reject
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="closeSubmissionDetailsModal()">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
       </div>
     </div>
   </div>

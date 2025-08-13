@@ -35,6 +35,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(UPLOADS_PATH));
+
 // Add request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -91,9 +94,12 @@ app.post('/api/save-draft', upload.single('attachment'), async (req, res) => {
     if (!db.draftSelections) {
       db.draftSelections = [];
     }
-    const existingRecordIndex = db.draftSelections.findIndex(record => record.employeeId === employeeId);
+    
+    // Remove ALL existing drafts for this user to prevent duplicates
+    db.draftSelections = db.draftSelections.filter(record => record.employeeId !== employeeId);
+    
     const dateRecord = {
-      id: existingRecordIndex >= 0 ? db.draftSelections[existingRecordIndex].id : Date.now(),
+      id: Date.now(), // Always generate new ID
       userId: userId,
       employeeId: employeeId,
       userDesignation: userDesignation,
@@ -105,11 +111,9 @@ app.post('/api/save-draft', upload.single('attachment'), async (req, res) => {
       year: new Date().getFullYear(),
       attachment: req.file ? req.file.filename : undefined
     };
-    if (existingRecordIndex >= 0) {
-      db.draftSelections[existingRecordIndex] = dateRecord;
-    } else {
-      db.draftSelections.push(dateRecord);
-    }
+    
+    // Add the new draft
+    db.draftSelections.push(dateRecord);
     const success = await writeDatabase(db);
     if (success) {
       res.json({ 
@@ -192,12 +196,18 @@ app.get('/api/get-draft/:employeeId', async (req, res) => {
       return res.status(500).json({ error: 'Failed to read database' });
     }
 
-    const userRecord = db.draftSelections?.find(record => 
+    // Find all drafts for this user and get the most recent one
+    const userRecords = db.draftSelections?.filter(record => 
       record.employeeId === employeeId
     );
 
-    if (userRecord) {
-      res.json(userRecord);
+    if (userRecords && userRecords.length > 0) {
+      // Sort by savedAt timestamp and get the most recent
+      const latestRecord = userRecords.sort((a, b) => 
+        new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
+      )[0];
+      
+      res.json(latestRecord);
     } else {
       res.json({ message: 'No draft found for this user', selectedDates: [] });
     }
@@ -509,6 +519,218 @@ app.get('/api/get-approved/:employeeId', async (req, res) => {
     res.json(approved);
   } catch (error) {
     console.error('Error fetching approved selections:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// User Management API Endpoints
+
+// Add new user
+app.post('/api/users', async (req, res) => {
+  try {
+    const { name, employeeId, password, designation, location, role = 'user' } = req.body;
+    
+    // Validate required fields
+    if (!name || !employeeId || !password || !designation || !location) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const db = await readDatabase();
+    if (!db) {
+      return res.status(500).json({ error: 'Failed to read database' });
+    }
+
+    // Ensure users array exists
+    if (!db.users) {
+      db.users = [];
+    }
+    if (!db.admins) {
+      db.admins = [];
+    }
+
+    // Check if employeeId already exists in users or admins
+    const existingUser = db.users.find(u => u.employeeId === employeeId);
+    const existingAdmin = db.admins.find(a => a.employeeId === employeeId);
+    
+    if (existingUser || existingAdmin) {
+      return res.status(400).json({ error: 'Employee ID already exists' });
+    }
+
+    // Generate new ID
+    const allIds = [...db.users.map(u => u.id), ...db.admins.map(a => a.id)];
+    const newId = allIds.length > 0 ? Math.max(...allIds) + 1 : 1;
+
+    const newUser = {
+      id: newId,
+      name,
+      employeeId,
+      password,
+      designation,
+      location,
+      role
+    };
+
+    // Add to appropriate collection based on role
+    if (role === 'admin') {
+      newUser.permissions = ['view_all_users', 'manage_bookings'];
+      db.admins.push(newUser);
+    } else {
+      db.users.push(newUser);
+    }
+
+    const success = await writeDatabase(db);
+    if (success) {
+      // Don't send password back
+      const { password: _, ...userResponse } = newUser;
+      res.status(201).json({ message: 'User created successfully', user: userResponse });
+    } else {
+      res.status(500).json({ error: 'Failed to save user' });
+    }
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update user
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { name, employeeId, designation, location, role } = req.body;
+    
+    const db = await readDatabase();
+    if (!db) {
+      return res.status(500).json({ error: 'Failed to read database' });
+    }
+
+    let userFound = false;
+    let userIndex = -1;
+    let isAdmin = false;
+
+    // Check in users array first
+    userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex >= 0) {
+      userFound = true;
+      isAdmin = false;
+    } else {
+      // Check in admins array
+      userIndex = db.admins.findIndex(a => a.id === userId);
+      if (userIndex >= 0) {
+        userFound = true;
+        isAdmin = true;
+      }
+    }
+
+    if (!userFound) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if new employeeId already exists (excluding current user)
+    if (employeeId) {
+      const existingUser = db.users.find(u => u.employeeId === employeeId && u.id !== userId);
+      const existingAdmin = db.admins.find(a => a.employeeId === employeeId && a.id !== userId);
+      
+      if (existingUser || existingAdmin) {
+        return res.status(400).json({ error: 'Employee ID already exists' });
+      }
+    }
+
+    const targetArray = isAdmin ? db.admins : db.users;
+    const currentUser = targetArray[userIndex];
+
+    // Update user fields
+    if (name) currentUser.name = name;
+    if (employeeId) currentUser.employeeId = employeeId;
+    if (designation) currentUser.designation = designation;
+    if (location) currentUser.location = location;
+
+    // Handle role change
+    if (role && role !== currentUser.role) {
+      // Remove from current array
+      targetArray.splice(userIndex, 1);
+      
+      // Add to appropriate array
+      currentUser.role = role;
+      if (role === 'admin') {
+        if (!currentUser.permissions) {
+          currentUser.permissions = ['view_all_users', 'manage_bookings'];
+        }
+        db.admins.push(currentUser);
+      } else {
+        delete currentUser.permissions;
+        db.users.push(currentUser);
+      }
+    }
+
+    const success = await writeDatabase(db);
+    if (success) {
+      const { password: _, ...userResponse } = currentUser;
+      res.json({ message: 'User updated successfully', user: userResponse });
+    } else {
+      res.status(500).json({ error: 'Failed to save user' });
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete user
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    const db = await readDatabase();
+    if (!db) {
+      return res.status(500).json({ error: 'Failed to read database' });
+    }
+
+    let userFound = false;
+    let userIndex = -1;
+    let isAdmin = false;
+    let deletedUser = null;
+
+    // Check in users array first
+    userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex >= 0) {
+      userFound = true;
+      isAdmin = false;
+      deletedUser = db.users[userIndex];
+      db.users.splice(userIndex, 1);
+    } else {
+      // Check in admins array
+      userIndex = db.admins.findIndex(a => a.id === userId);
+      if (userIndex >= 0) {
+        userFound = true;
+        isAdmin = true;
+        deletedUser = db.admins[userIndex];
+        db.admins.splice(userIndex, 1);
+      }
+    }
+
+    if (!userFound) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Also remove related data (draft selections, submitted selections, etc.)
+    if (db.draftSelections) {
+      db.draftSelections = db.draftSelections.filter(d => d.userId !== userId.toString());
+    }
+    if (db.submittedSelections) {
+      db.submittedSelections = db.submittedSelections.filter(s => s.userId !== userId.toString());
+    }
+    if (db.approvedSelections) {
+      db.approvedSelections = db.approvedSelections.filter(a => a.userId !== userId.toString());
+    }
+
+    const success = await writeDatabase(db);
+    if (success) {
+      res.json({ message: 'User and related data deleted successfully', deletedUser: deletedUser.name });
+    } else {
+      res.status(500).json({ error: 'Failed to delete user' });
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

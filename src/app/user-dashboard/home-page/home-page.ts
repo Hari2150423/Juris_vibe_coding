@@ -84,7 +84,7 @@ export class HomePage implements OnInit {
 
   checkForSelections() {
     this.checkForSubmittedSelection();
-    setTimeout(() => this.checkForDraftSelection(), 0);
+    setTimeout(() => this.checkForDraftSelection(), 1000); // Give backend time to save
   }
 
   checkForDraftSelection() {
