@@ -156,6 +156,19 @@ app.post('/api/submit-for-review', async (req, res) => {
       db.submittedSelections = [];
     }
 
+    // Remove any existing submitted selections for this user (pending, rejected, etc.)
+    // This ensures only the latest submission is kept
+    db.submittedSelections = db.submittedSelections.filter(record => 
+      record.employeeId !== employeeId
+    );
+    
+    // Also remove any existing approved selections for this user for resubmissions
+    if (db.approvedSelections) {
+      db.approvedSelections = db.approvedSelections.filter(record => 
+        record.employeeId !== employeeId
+      );
+    }
+
     // Create submitted record
     const submittedRecord = {
       ...draftRecord,
@@ -228,12 +241,32 @@ app.get('/api/get-submitted/:employeeId', async (req, res) => {
       return res.status(500).json({ error: 'Failed to read database' });
     }
 
-    const userRecord = db.submittedSelections?.find(record => 
-      record.employeeId === employeeId
-    );
+    // Find all submissions for this user across all arrays (submitted, approved)
+    let allUserRecords = [];
+    
+    // Add from submitted selections (pending/rejected)
+    if (db.submittedSelections) {
+      const submittedRecords = db.submittedSelections.filter(record => 
+        record.employeeId === employeeId
+      );
+      allUserRecords = allUserRecords.concat(submittedRecords);
+    }
+    
+    // Add from approved selections
+    if (db.approvedSelections) {
+      const approvedRecords = db.approvedSelections.filter(record => 
+        record.employeeId === employeeId
+      );
+      allUserRecords = allUserRecords.concat(approvedRecords);
+    }
 
-    if (userRecord) {
-      res.json(userRecord);
+    if (allUserRecords.length > 0) {
+      // Sort by submittedAt timestamp and get the most recent
+      const latestRecord = allUserRecords.sort((a, b) => 
+        new Date(b.submittedAt || b.savedAt).getTime() - new Date(a.submittedAt || a.savedAt).getTime()
+      )[0];
+      
+      res.json(latestRecord);
     } else {
       res.json({ message: 'No submitted selection found for this user', selectedDates: [] });
     }

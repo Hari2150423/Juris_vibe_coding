@@ -58,6 +58,33 @@
       "designation": "Jr. Developer",
       "location": "Coimbatore",
       "role": "user"
+    },
+    {
+      "id": 6,
+      "name": "Karthik Hero",
+      "employeeId": "123457",
+      "password": "123456789",
+      "designation": "SDE 2",
+      "location": "London",
+      "role": "user"
+    },
+    {
+      "id": 7,
+      "name": "Hemant",
+      "employeeId": "9876",
+      "password": "987654321",
+      "designation": "Jr. Developer",
+      "location": "Coimbatore",
+      "role": "user"
+    },
+    {
+      "id": 8,
+      "name": "Niddhish",
+      "employeeId": "6789",
+      "password": "987654321",
+      "designation": "Jr. Developer",
+      "location": "Coimbatore",
+      "role": "user"
     }
   ],
   "draftSelections": [
@@ -220,6 +247,91 @@
       "submittedAt": "2025-08-13T06:22:36.177Z",
       "adminComment": "ok",
       "reviewedAt": "2025-08-13T06:23:22.924Z"
+    },
+    {
+      "id": 1755068640070,
+      "userId": "4",
+      "employeeId": "alice001",
+      "userDesignation": "Senior Analyst",
+      "userLocation": "Chicago",
+      "selectedDates": [
+        "2025-08-13T07:03:37.966Z",
+        "2025-08-14T07:03:37.966Z",
+        "2025-08-15T07:03:37.966Z",
+        "2025-08-18T07:03:37.966Z",
+        "2025-08-19T07:03:37.966Z",
+        "2025-08-20T07:03:37.966Z",
+        "2025-08-21T07:03:37.966Z",
+        "2025-08-22T07:03:37.966Z",
+        "2025-08-25T07:03:37.966Z",
+        "2025-08-26T07:03:37.966Z",
+        "2025-08-27T07:03:37.966Z",
+        "2025-08-28T07:03:37.966Z",
+        "2025-08-29T07:03:37.966Z"
+      ],
+      "savedAt": "2025-08-13T07:04:00.070Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755068640060-541976105-image 1.png",
+      "submittedAt": "2025-08-13T07:04:06.709Z",
+      "reviewedAt": "2025-08-13T07:11:21.013Z"
+    },
+    {
+      "id": 1755069300226,
+      "userId": "6",
+      "employeeId": "123457",
+      "userDesignation": "SDE 2",
+      "userLocation": "London",
+      "selectedDates": [
+        "2025-08-13T07:14:45.229Z",
+        "2025-08-14T07:14:45.229Z",
+        "2025-08-15T07:14:45.229Z"
+      ],
+      "savedAt": "2025-08-13T07:15:00.226Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755069300211-459635539-image 1.png",
+      "submittedAt": "2025-08-13T07:15:07.692Z",
+      "reviewedAt": "2025-08-13T07:16:28.926Z"
+    },
+    {
+      "id": 1755071024828,
+      "userId": "7",
+      "employeeId": "9876",
+      "userDesignation": "Jr. Developer",
+      "userLocation": "Coimbatore",
+      "selectedDates": [
+        "2025-08-13T07:43:33.262Z",
+        "2025-08-14T07:43:33.262Z"
+      ],
+      "savedAt": "2025-08-13T07:43:44.828Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755071024822-528344545-image 1.png",
+      "submittedAt": "2025-08-13T07:43:51.143Z",
+      "reviewedAt": "2025-08-13T07:44:08.372Z"
+    },
+    {
+      "id": 1755071193685,
+      "userId": "8",
+      "employeeId": "6789",
+      "userDesignation": "Jr. Developer",
+      "userLocation": "Coimbatore",
+      "selectedDates": [
+        "2025-08-13T07:46:16.974Z",
+        "2025-08-14T07:46:16.974Z",
+        "2025-08-15T07:46:16.974Z"
+      ],
+      "savedAt": "2025-08-13T07:46:33.685Z",
+      "status": "approved",
+      "month": 8,
+      "year": 2025,
+      "attachment": "1755071193679-452515877-image 1.png",
+      "submittedAt": "2025-08-13T07:46:38.947Z",
+      "reviewedAt": "2025-08-13T07:46:55.834Z"
     }
   ]
 }
